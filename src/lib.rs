@@ -16,7 +16,7 @@ use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 #[command(version = "1.0")]
 #[command(about = "Detects if you're working too long and reminds you to rest.", long_about = None)]
 pub struct Args {
-    #[arg(long, default_value = "desktop", help = "Where to save the log file: c, d, desktop")]
+    #[arg(long, default_value = "D:\\", help = "Where to save the log file: c, d, desktop")]
     pub log_to: String,
 }
 
@@ -38,7 +38,7 @@ impl LogLocation {
 /// Non-stop working time
 /// 
 /// User can set their preferred non-stop working time manually.
-const WORKING_TIME: u64 = 3600;
+const WORKING_TIME: u64 = 10;
 
 /// Main function
 pub fn run_rest_reminder(log_location: LogLocation) {
@@ -91,7 +91,7 @@ fn pop_up() {
     let title = widestring::U16CString::from_str(
         "REST REMINDEEEEEEEEEEEEEEEEER").unwrap();
     
-    let message_string = format!("{WORKING_TIME} NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!");
+    let message_string = format!("{WORKING_TIME} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!");
     let message = widestring::U16CString::from_str(
         message_string.as_str())
         .unwrap();
