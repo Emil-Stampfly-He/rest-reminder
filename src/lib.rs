@@ -38,7 +38,7 @@ impl LogLocation {
 /// Non-stop working time
 /// 
 /// User can set their preferred non-stop working time manually.
-const WORKING_TIME: u64 = 10;
+const WORKING_TIME: u64 = 3600;
 
 /// Main function
 pub fn run_rest_reminder(log_location: LogLocation) {
