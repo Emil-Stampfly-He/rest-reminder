@@ -43,7 +43,7 @@ If you do wish to DIY it for yourself, first, ensure you have Rust and Cargo ins
 ```aiignore
 git clone https://github.com/Emil-Stampfly-He/rest-reminder
 ```
-Locations related code chunks:
+Location related code chunks:
 ```Rust
 #[derive(Debug, Clone)]
 pub enum LogLocation {
