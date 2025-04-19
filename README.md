@@ -31,7 +31,7 @@ in your terminal:
 ```aiignore
 rest-reminder.exe --log-to d
 ```
-`--log-to d` means the log file will be saved in your `D:\`. There's alternate location you can choose:
+`--log-to d` means the log file will be saved in your `D:\`. There's an alternate location you can choose:
 ```aiignore
 rest-reminder.exe --log-to c
 ```
