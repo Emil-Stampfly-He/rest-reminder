@@ -1,0 +1,11 @@
+[package]
+name = "rest-reminder"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sysinfo = "0.30"
+windows = {version = "0.52.0", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
+widestring = "1.0"
+chrono = "0.4.40"
+clap = { version = "4.4", features = ["derive"]}
