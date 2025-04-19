@@ -1,4 +1,5 @@
 # Rest Reminder (Windows User Only Currently)
+简体中文：[README_zh.md](./README-zh_CN.md).
 
 A small Rust-based Windows application that monitors whether IntelliJ IDEA or RustRover is running, and reminds you to take a break after one hour of continuous usage. It also logs your focused work sessions to a file.
 
