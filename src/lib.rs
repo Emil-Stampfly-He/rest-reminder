@@ -22,20 +22,23 @@ pub struct Args {
     #[arg(
         long,                                     // generate --log-to
         value_name = "PATH",                      // show <PATH> in help
-        default_value = r"D:\\focus_log.txt",      // default value
+        default_value = r"D:\\focus_log.txt",     // default value
         value_parser = clap::value_parser!(PathBuf),
         help = "Where to save the log file"
     )]
     pub log_to: PathBuf,
+
+    #[arg(
+        long,                                     // generate --time
+        value_name = "TIME",                      // show <PATH> in help
+        default_value_t = 3600,                   // default value
+        help = "How many seconds to work non stop before reminding"
+    )]
+    pub time: u64,
 }
 
-/// Non-stop working time
-/// 
-/// User can set their preferred non-stop working time manually.
-const WORKING_TIME: u64 = 3600;
-
 /// Main function
-pub fn run_rest_reminder(mut log_location: PathBuf) {
+pub fn run_rest_reminder(mut log_location: PathBuf, time: u64) {
     let target_software = vec!["idea64.exe", "rustrover64.exe"];
     let mut sys = System::new_all();
 
@@ -68,9 +71,9 @@ pub fn run_rest_reminder(mut log_location: PathBuf) {
 
                 let elapsed = start_time.elapsed();
                 // Set for 1h
-                if elapsed.as_secs() >= WORKING_TIME {
+                if elapsed.as_secs() >= time {
                     println!("IDE still running, you need a break!");
-                    pop_up();
+                    pop_up(time);
                     log(start, Local::now(), &mut log_location);
                     break;
                 }
@@ -81,11 +84,11 @@ pub fn run_rest_reminder(mut log_location: PathBuf) {
     }
 }
 
-fn pop_up() {
+fn pop_up(time: u64) {
     let title = widestring::U16CString::from_str(
         "REST REMINDEEEEEEEEEEEEEEEEER").unwrap();
     
-    let message_string = format!("{WORKING_TIME} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!");
+    let message_string = format!("{time} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!");
     let message = widestring::U16CString::from_str(
         message_string.as_str())
         .unwrap();
