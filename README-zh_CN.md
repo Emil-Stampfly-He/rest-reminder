@@ -29,9 +29,10 @@
 如果你不打算更改任何东西，建议直接从 Releases 页面下载。在下载后，运行以下命令：
 
 ```aiignore
-rest-reminder.exe --log-to <file_location>
+rest-reminder.exe --log-to <file_location> --time <time>
 ```
-如果你没有指定`focus_log.txt`的文件存放位置，程序会自动指定`D:\`为存放位置。
+如果你没有指定`focus_log.txt`的文件存放位置，程序会自动指定`D:\`为存放位置。如果时间参数未被指定，则程序会默认设置
+为3600秒（1小时）。对于时间参数，你需要按照秒数指定，而不是分钟或小时数。
 
 **注意：不要在文件地址后加上`focus_log.txt`的后缀！** 例如：
 * "D:\\": 允许

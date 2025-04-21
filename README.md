@@ -30,9 +30,10 @@ There are two ways for you to install this application.
 If you do not wish to change anything, directly downloading from Releases is recommended. After downloading, run this command
 in your terminal:
 ```aiignore
-rest-reminder.exe --log-to <file_location>
+rest-reminder.exe --log-to <file_location> --time <time>
 ```
-If you did not indicate your focus_log.txt file location, it will be set to be `D:\` in default.
+If you did not indicate your focus_log.txt file location, it will be set to be `D:\` in default. The default work time is 3600 seconds (1 hour).
+For blank `<time>`, you need to indicate in second, not minute or hour.
 
 **Reminder: DO NOT add `focus_log.txt` after your file location!** For example:
 * "D:\\": allowed
@@ -46,11 +47,6 @@ If you do wish to DIY it for yourself, first, ensure you have Rust and Cargo ins
 git clone https://github.com/Emil-Stampfly-He/rest-reminder
 ```
 
-```
-Working time related code line:
-```Rust
-const WORKING_TIME: u64 = 10;
-```
 Listened processes related code lines:
 ```Rust
 pub fn run_rest_reminder(log_location: LogLocation) {
