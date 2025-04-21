@@ -1,11 +1,10 @@
 use clap::Parser;
-use rest_reminder::{run_rest_reminder, Args, LogLocation};
+use rest_reminder::{run_rest_reminder, Args};
 
 fn main() {
     let args = Args::parse();
-    let log_location = LogLocation::from_str(&args.log_to);
     
-    run_rest_reminder(log_location);
+    run_rest_reminder(args.log_to);
 }
 
 

@@ -11,28 +11,22 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 
 #[derive(Parser, Debug)]
-#[command(name = "Rest Reminder")]
-#[command(author = "Emil")]
-#[command(version = "1.0")]
-#[command(about = "Detects if you're working too long and reminds you to rest.", long_about = None)]
+#[command(
+    name = "Rest Reminder",
+    author = "Emil Stampfly He",
+    version = "0.2.0",
+    about = "Detects if you're working too long and reminds you to rest.",
+    long_about = None,
+)]
 pub struct Args {
-    #[arg(long, default_value = "D:\\", help = "Where to save the log file: c, d, desktop")]
-    pub log_to: String,
-}
-
-#[derive(Debug, Clone)]
-pub enum LogLocation {
-    C,
-    D,
-}
-
-impl LogLocation {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "c" => LogLocation::C,
-            _ => LogLocation::D,
-        }
-    }
+    #[arg(
+        long,                                     // generate --log-to
+        value_name = "PATH",                      // show <PATH> in help
+        default_value = r"D:\\focus_log.txt",      // default value
+        value_parser = clap::value_parser!(PathBuf),
+        help = "Where to save the log file"
+    )]
+    pub log_to: PathBuf,
 }
 
 /// Non-stop working time
@@ -41,7 +35,7 @@ impl LogLocation {
 const WORKING_TIME: u64 = 3600;
 
 /// Main function
-pub fn run_rest_reminder(log_location: LogLocation) {
+pub fn run_rest_reminder(mut log_location: PathBuf) {
     let target_software = vec!["idea64.exe", "rustrover64.exe"];
     let mut sys = System::new_all();
 
@@ -77,7 +71,7 @@ pub fn run_rest_reminder(log_location: LogLocation) {
                 if elapsed.as_secs() >= WORKING_TIME {
                     println!("IDE still running, you need a break!");
                     pop_up();
-                    log(start, Local::now(), log_location.clone());
+                    log(start, Local::now(), &mut log_location);
                     break;
                 }
             }
@@ -106,7 +100,12 @@ fn pop_up() {
     }
 }
 
-fn log(start: DateTime<Local>, end: DateTime<Local>, log_location: LogLocation) {
+fn log(start: DateTime<Local>, end: DateTime<Local>, log_location: &mut PathBuf) {
+    let mut path = log_location.to_path_buf();
+    if path.is_dir() || log_location.to_string_lossy().ends_with(std::path::MAIN_SEPARATOR) {
+        path.push("focus_log.txt");
+    }
+    
     let duration = end - start;
     let log_line = format!(
         "[{} ~ {}] You worked for {:.2} minutes \n",
@@ -114,8 +113,7 @@ fn log(start: DateTime<Local>, end: DateTime<Local>, log_location: LogLocation) 
         end.format("%Y-%m-%d %H:%M:%S"),
         duration.num_seconds() as f64 / 60.0
     );
-
-    let path = get_log_path(log_location);
+    
 
     let mut file = OpenOptions::new()
         .create(true)
@@ -124,11 +122,4 @@ fn log(start: DateTime<Local>, end: DateTime<Local>, log_location: LogLocation) 
         .expect("Cannot open log file!");
 
     file.write_all(log_line.as_bytes()).expect("Cannot write log file!");
-}
-
-fn get_log_path(location: LogLocation) -> PathBuf {
-    match location {
-        LogLocation::C => PathBuf::from("C:\\focus_log.txt"),
-        LogLocation::D => PathBuf::from("D:\\focus_log.txt"),
-    }
 }
