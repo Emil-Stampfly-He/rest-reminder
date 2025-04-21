@@ -46,10 +46,6 @@ rest-reminder.exe --log-to <file_location> --time <time>
 ```aiignore
 git clone https://github.com/Emil-Stampfly-He/rest-reminder
 ```
-工作时长相关代码行：
-```Rust
-const WORKING_TIME: u64 = 10;
-```
 被监听的进程相关代码块：
 ```Rust
 pub fn run_rest_reminder(log_location: LogLocation) {
