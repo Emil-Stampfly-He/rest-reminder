@@ -29,43 +29,21 @@
 如果你不打算更改任何东西，建议直接从 Releases 页面下载。在下载后，运行以下命令：
 
 ```aiignore
-rest-reminder.exe --log-to d
+rest-reminder.exe --log-to <file_location>
 ```
-`--log-to d`表示日志文件会被存入`D:\`。当然，你也可以选择存入C盘:
-```aiignore
-rest-reminder.exe --log-to c
-```
-你可能会需要调整管理员权限。
+如果你没有指定`focus_log.txt`的文件存放位置，程序会自动指定`D:\`为存放位置。
+
+**注意：不要在文件地址后加上`focus_log.txt`的后缀！** 例如：
+* "D:\\": 允许
+* "D:\\focus_log.txt": **不被允许**
+* "D:\\name": **不被允许**，因为地址最后没有加上 `\`
+
 
 ### 2. 从源代码中重新构建
 如果你希望自己DIY，首先确保自己已经安装了Rust和Cargo。
 
 ```aiignore
 git clone https://github.com/Emil-Stampfly-He/rest-reminder
-```
-日志存放位置相关代码块：
-```Rust
-#[derive(Debug, Clone)]
-pub enum LogLocation {
-    C,
-    D,
-}
-
-impl LogLocation {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "c" => LogLocation::C,
-            _ => LogLocation::D,
-        }
-    }
-}
-
-fn get_log_path(location: LogLocation) -> PathBuf {
-    match location {
-        LogLocation::C => PathBuf::from("C:\\focus_log.txt"),
-        LogLocation::D => PathBuf::from("D:\\focus_log.txt"),
-    }
-}
 ```
 工作时长相关代码行：
 ```Rust

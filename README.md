@@ -30,13 +30,14 @@ There are two ways for you to install this application.
 If you do not wish to change anything, directly downloading from Releases is recommended. After downloading, run this command
 in your terminal:
 ```aiignore
-rest-reminder.exe --log-to d
+rest-reminder.exe --log-to <file_location>
 ```
-`--log-to d` means the log file will be saved in your `D:\`. There's an alternate location you can choose:
-```aiignore
-rest-reminder.exe --log-to c
-```
-which will be saved in your `C:\`, should you run your terminal in administration.
+If you did not indicate your focus_log.txt file location, it will be set to be `D:\` in default.
+
+**Reminder: DO NOT add `focus_log.txt` after your file location!** For example:
+* "D:\\": allowed
+* "D:\\focus_log.txt": **NOT** allowed
+* "D:\\name": **NOT** allowed, since you missed a `\` suffix
 
 ### 2. Build from Source
 If you do wish to DIY it for yourself, first, ensure you have Rust and Cargo installed:
@@ -44,29 +45,7 @@ If you do wish to DIY it for yourself, first, ensure you have Rust and Cargo ins
 ```aiignore
 git clone https://github.com/Emil-Stampfly-He/rest-reminder
 ```
-Location related code chunks:
-```Rust
-#[derive(Debug, Clone)]
-pub enum LogLocation {
-    C,
-    D,
-}
 
-impl LogLocation {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "c" => LogLocation::C,
-            _ => LogLocation::D,
-        }
-    }
-}
-
-fn get_log_path(location: LogLocation) -> PathBuf {
-    match location {
-        LogLocation::C => PathBuf::from("C:\\focus_log.txt"),
-        LogLocation::D => PathBuf::from("D:\\focus_log.txt"),
-    }
-}
 ```
 Working time related code line:
 ```Rust
