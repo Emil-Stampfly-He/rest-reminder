@@ -1,3 +1,5 @@
+mod statistics;
+
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
@@ -14,7 +16,7 @@ use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 #[command(
     name = "Rest Reminder",
     author = "Emil Stampfly He",
-    version = "0.2.0",
+    version = "0.3.0",
     about = "Detects if you're working too long and reminds you to rest.",
     long_about = None,
 )]
@@ -35,11 +37,19 @@ pub struct Args {
         help = "How many seconds to work non stop before reminding"
     )]
     pub time: u64,
+    
+    #[arg(
+        long,
+        value_name = "APP",
+        num_args = 1..,                                         // at least 1, no limit
+        default_values = &["idea64.exe", "rustrover64.exe"],    // default value
+        help = "What software(s) to detect"
+    )]
+    pub app: Vec<String>,
 }
 
 /// Main function
-pub fn run_rest_reminder(mut log_location: PathBuf, time: u64) {
-    let target_software = vec!["idea64.exe", "rustrover64.exe"];
+pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>) {
     let mut sys = System::new_all();
 
     loop {
@@ -47,7 +57,7 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64) {
         let found = sys.processes()
             .values()
             .any(|process|
-                target_software.iter()
+                app.iter()
                     .any(|software|
                         process.name().contains(software)));
         if found {
@@ -61,7 +71,7 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64) {
                 let still_running = sys.processes()
                     .values()
                     .any(|process|
-                        target_software.iter()
+                        app.iter()
                             .any(|software|
                                 process.name().contains(software)));
                 if !still_running {
