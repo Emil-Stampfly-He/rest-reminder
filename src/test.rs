@@ -84,7 +84,7 @@ mod test_first {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let day = local_date("2025-04-21");
         // Entries on 4/21, including a segment past midnight (counted only until 23:59:59).
-        // Verified total seconds: 29372
+        // Verified total seconds: 29,372
         assert_eq!(single_day_work_time(path, day).unwrap(), 29372);
     }
 

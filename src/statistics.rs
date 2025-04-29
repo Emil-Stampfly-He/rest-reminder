@@ -68,7 +68,7 @@ pub fn acc_work_time(
     }
 
     let naive_start = start_day.date_naive().and_hms_opt(0, 0, 0).unwrap();
-    let naive_end   = end_day  .date_naive().and_hms_opt(23,59,59).unwrap();
+    let naive_end   = end_day.date_naive().and_hms_opt(23,59,59).unwrap();
     let start_dt = match Local.from_local_datetime(&naive_start) {
         LocalResult::Single(dt) => dt,
         _ => panic!("Invalid local start_day"),
