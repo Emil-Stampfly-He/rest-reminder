@@ -9,8 +9,6 @@ use windows::core::PCWSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 
-
-
 /// Main function
 pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>) {
     let mut sys = System::new_all();
