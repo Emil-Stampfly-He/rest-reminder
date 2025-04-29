@@ -2,9 +2,13 @@ use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::BufRead;
 use std::path::PathBuf;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 
-pub fn acc_work_time_precise(log_location: PathBuf, start: DateTime<Local>, end:DateTime<Local>) -> Result<i64, Box<dyn Error>> {
+pub fn acc_work_time_precise(
+    log_location: PathBuf, 
+    start: DateTime<Local>, 
+    end:DateTime<Local>
+) -> Result<i64, Box<dyn Error>> {
     if end < start {
         panic!("End time must be greater than start time!");
     } else if end == start {
@@ -29,10 +33,17 @@ pub fn acc_work_time_precise(log_location: PathBuf, start: DateTime<Local>, end:
             let mut parts = times.split(" ~ ");
             let start_time = parts.next().unwrap();
             let end_time = parts.next().unwrap();
-            
-            let start_time = start_time.parse::<DateTime<Local>>()?;
-            let end_time = end_time.parse::<DateTime<Local>>()?;
-            
+
+            let start_naive = NaiveDateTime::parse_from_str(start_time,"%Y-%m-%d %H:%M:%S")?;
+            let end_naive   = NaiveDateTime::parse_from_str(end_time,"%Y-%m-%d %H:%M:%S")?;
+            let start_time = Local
+                .from_local_datetime(&start_naive)
+                .single()
+                .ok_or("Ambiguous or invalid local time")?;
+            let end_time   = Local
+                .from_local_datetime(&end_naive)
+                .single()
+                .ok_or("Ambiguous or invalid local time")?;
             if start_time <= start && end_time <= end {
                 work_time += end_time - start_time;
                 return Ok(work_time.num_seconds());
@@ -51,7 +62,11 @@ pub fn acc_work_time_precise(log_location: PathBuf, start: DateTime<Local>, end:
     Ok(work_time.num_seconds())
 }
 
-pub fn acc_work_time(log_location: PathBuf, start_day: DateTime<Local>, end_day: DateTime<Local>) -> Result<i64, Box<dyn std::error::Error>> {
+pub fn acc_work_time(
+    log_location: PathBuf, 
+    start_day: DateTime<Local>, 
+    end_day: DateTime<Local>
+) -> Result<i64, Box<dyn std::error::Error>> {
     if end_day < start_day {
         panic!("End day must be greater than start day!");
     } else if end_day == start_day {
@@ -97,6 +112,9 @@ pub fn acc_work_time(log_location: PathBuf, start_day: DateTime<Local>, end_day:
 }
 
 // TODO
-pub fn single_day_work_time(log_location: PathBuf, day: DateTime<Local>) -> Result<i64, Box<dyn std::error::Error>> {
+pub fn single_day_work_time(
+    log_location: PathBuf, 
+    day: DateTime<Local>
+) -> Result<i64, Box<dyn Error>> {
     Ok(0)
 }
