@@ -28,33 +28,27 @@ pub fn acc_work_time_precise(
         }
         
         if let Some(end_bracket) = line.find(']') {
-            // get "2025-04-19 22:16:15 ~ 2025-04-19 22:16:32" string
+            // Get "2025-04-19 22:16:15 ~ 2025-04-19 22:16:32" string
             let times = &line[1..end_bracket];
             let mut parts = times.split(" ~ ");
             let start_time = parts.next().unwrap();
             let end_time = parts.next().unwrap();
 
             let start_naive = NaiveDateTime::parse_from_str(start_time,"%Y-%m-%d %H:%M:%S")?;
-            let end_naive   = NaiveDateTime::parse_from_str(end_time,"%Y-%m-%d %H:%M:%S")?;
-            let start_time = Local
+            let end_naive = NaiveDateTime::parse_from_str(end_time,"%Y-%m-%d %H:%M:%S")?;
+            let log_start_time = Local
                 .from_local_datetime(&start_naive)
                 .single()
                 .ok_or("Ambiguous or invalid local time")?;
-            let end_time   = Local
+            let log_end_time = Local
                 .from_local_datetime(&end_naive)
                 .single()
                 .ok_or("Ambiguous or invalid local time")?;
-            if start_time <= start && end_time <= end {
-                work_time += end_time - start_time;
-                return Ok(work_time.num_seconds());
-            }
-            
-            if start_time <= start && start <= end_time {
-                work_time += end_time - start;
-            } else if start <= start_time && end_time <= end {
-                work_time += end_time - start_time;
-            } else if start_time <= end && end <= end_time {
-                work_time += end - start_time;
+
+            let overlap_start = log_start_time.max(start);
+            let overlap_end = log_end_time.min(end);
+            if overlap_start < overlap_end {
+                work_time += overlap_end - overlap_start;
             }
         }
     }
@@ -66,7 +60,7 @@ pub fn acc_work_time(
     log_location: PathBuf, 
     start_day: DateTime<Local>, 
     end_day: DateTime<Local>
-) -> Result<i64, Box<dyn std::error::Error>> {
+) -> Result<i64, Box<dyn Error>> {
     if end_day < start_day {
         panic!("End day must be greater than start day!");
     } else if end_day == start_day {

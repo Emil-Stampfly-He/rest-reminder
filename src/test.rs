@@ -3,7 +3,7 @@ mod tests {
     use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
     use std::path::PathBuf;
     use crate::statistics::acc_work_time_precise;
-    
+
     fn local_dt(s: &str) -> DateTime<Local> {
         let naive = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
             .expect("Format should be %Y-%m-%d %H:%M:%S");
@@ -11,20 +11,20 @@ mod tests {
             .single()
             .expect("Should be a valid date")
     }
-    
+
     #[test]
     fn test_zero_duration() {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let dt = local_dt("2025-04-19 00:00:00");
         assert_eq!(acc_work_time_precise(path.clone(), dt, dt).unwrap(), 0);
     }
-    
+
     #[test]
     #[should_panic(expected = "End time must be greater than start time!")]
     fn test_end_before_start() {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let start = local_dt("2025-04-19 23:00:00");
-        let end   = local_dt("2025-04-19 22:00:00");
+        let end = local_dt("2025-04-19 22:00:00");
         let _ = acc_work_time_precise(path, start, end);
     }
 
@@ -37,7 +37,7 @@ mod tests {
     fn test_accumulate_within_range() {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let start = local_dt("2025-04-19 22:00:00");
-        let end   = local_dt("2025-04-19 23:00:00");
+        let end = local_dt("2025-04-19 23:00:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 36);
     }
 
@@ -49,7 +49,7 @@ mod tests {
     fn test_partial_overlap_start_inside() {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let start = local_dt("2025-04-19 22:54:50");
-        let end   = local_dt("2025-04-19 22:55:00");
+        let end = local_dt("2025-04-19 22:55:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 10);
     }
 
@@ -58,7 +58,7 @@ mod tests {
     fn test_no_entries_in_range() {
         let path = PathBuf::from(r"D:\focus_log.txt");
         let start = local_dt("2025-04-19 21:00:00");
-        let end   = local_dt("2025-04-19 22:00:00");
+        let end = local_dt("2025-04-19 22:00:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 0);
     }
 }
