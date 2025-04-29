@@ -1,5 +1,5 @@
 use clap::Parser;
-use rest_reminder::{run_rest_reminder, Args};
+use rest_reminder::core::{run_rest_reminder, Args};
 
 fn main() {
     let args = Args::parse();

@@ -1,9 +1,10 @@
+use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::BufRead;
 use std::path::PathBuf;
 use chrono::{DateTime, Local};
 
-pub fn acc_work_time_precise(log_location: PathBuf, start: DateTime<Local>, end:DateTime<Local>) -> Result<i64, Box<dyn std::error::Error>> {
+pub fn acc_work_time_precise(log_location: PathBuf, start: DateTime<Local>, end:DateTime<Local>) -> Result<i64, Box<dyn Error>> {
     if end < start {
         panic!("End time must be greater than start time!");
     } else if end == start {
