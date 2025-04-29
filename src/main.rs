@@ -1,5 +1,6 @@
 use clap::Parser;
-use rest_reminder::core::{run_rest_reminder, Cli, Command};
+use rest_reminder::cli::{Cli, Command};
+use rest_reminder::core::run_rest_reminder;
 use rest_reminder::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
 
 fn main() {
