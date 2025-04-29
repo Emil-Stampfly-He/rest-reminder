@@ -111,7 +111,7 @@ fn parse_log_entries(log_location: &PathBuf) -> Result<Vec<(DateTime<Local>, Dat
         if !line.starts_with('[') { continue; }
         let end_bracket = match line.find(']') {
             Some(i) => i,
-            None    => continue,
+            None => continue,
         };
         let times_str = &line[1..end_bracket]; // "YYYY-MM-DD HH:MM:SS ~ YYYY-MM-DD HH:MM:SS"
         let mut parts  = times_str.split(" ~ ");

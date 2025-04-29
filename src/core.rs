@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use chrono::{DateTime, Local};
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use sysinfo::System;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::HWND;
@@ -16,34 +16,45 @@ use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
     author = "Emil Stampfly He",
     version = "0.3.0",
     about = "Detects if you're working too long and reminds you to rest.",
-    long_about = None,
 )]
-pub struct Args {
-    #[arg(
-        long,                                     // generate --log-to
-        value_name = "PATH",                      // show <PATH> in help
-        default_value = r"D:\\focus_log.txt",     // default value
-        value_parser = clap::value_parser!(PathBuf),
-        help = "Where to save the log file"
-    )]
-    pub log_to: PathBuf,
+pub struct Cli {
+    #[command(subcommand)]
+    pub cmd: Command,
+}
 
-    #[arg(
-        long,                                     // generate --time
-        value_name = "TIME",                      // show <PATH> in help
-        default_value_t = 3600,                   // default value
-        help = "How many seconds to work non stop before reminding"
-    )]
-    pub time: u64,
+#[derive(Subcommand, Debug)]
+pub enum Command {
+    // Work time statistics
+    CountTime,
+    
+    // Rest reminder
+    Rest {
+        #[arg(
+            long,
+            value_name = "PATH",
+            default_value = r"D:\\focus_log.txt",
+            value_parser = clap::value_parser!(PathBuf),
+            help = "Where to save the log file",
+        )]
+        log_to: PathBuf,
 
-    #[arg(
-        long,
-        value_name = "APP",
-        num_args = 1..,                                         // at least 1, no limit
-        default_values = &["idea64.exe", "rustrover64.exe"],    // default value
-        help = "What software(s) to detect"
-    )]
-    pub app: Vec<String>,
+        #[arg(
+            long,
+            value_name = "TIME",
+            default_value_t = 3600,
+            help = "How many seconds to work non stop before reminding",
+        )]
+        time: u64,
+
+        #[arg(
+            long,
+            value_name = "APP",
+            num_args = 1..,
+            default_values = &["idea64.exe", "rustrover64.exe"],
+            help = "What software(s) to detect",
+        )]
+        app: Vec<String>,
+    },
 }
 
 /// Main function
