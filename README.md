@@ -94,17 +94,3 @@ You need to format your `START` and `END` like `YYYY-MM-DD HH-MM-SS` **AND QUOTE
 rest-reminder.exe count-precise -- D:\focus_log.txt "2025-04-19 22:50:00" "2025-04-26 13:45:30"
 ```
 
-
-
-### 3. Build from Source
-If you do wish to DIY it for yourself, first, ensure you have Rust and Cargo installed. Then clone the source code into your local directory:
-
-```aiignore
-git clone https://github.com/Emil-Stampfly-He/rest-reminder
-```
-After you change everything, make sure it works, then:
-```aiignore
-cargo build --release
-```
-The final `.exe` file should appear in your `~\target\release`directory.
-

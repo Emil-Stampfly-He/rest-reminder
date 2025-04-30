@@ -24,7 +24,7 @@
 ## 使用方法
 如上所述，有两种方法来使用Rest Reminder。
 
-### 1. 从 Releases 下载
+### 1. 工作检测
 如果你不打算更改任何东西，建议直接从 Releases 页面下载。在下载后，运行以下命令：
 
 ```aiignore
@@ -95,15 +95,3 @@ rest-reminder.exe count-precise -- <PATH> <START> <END>
 rest-reminder.exe count-precise -- D:\focus_log.txt "2025-04-19 22:50:00" "2025-04-26 13:45:30"
 ```
 该命令会输出从 2025-04-19 22:50:00 到 2025-04-26 13:45:30 这段时间内的工作时长。
-
-### 3. 从源代码中重新构建
-如果你确实希望自己DIY，首先确保自己已经安装了Rust和Cargo。
-
-```aiignore
-git clone https://github.com/Emil-Stampfly-He/rest-reminder
-```
-修改完毕后，确保程序能够被正常编译，然后运行：
-```aiignore
-cargo build --release
-```
-最终的`.exe`文件会出现在 `~\target\release`目录当中。
