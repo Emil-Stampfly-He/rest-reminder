@@ -48,7 +48,7 @@ rest-reminder.exe rest -- D:\ 3600 Notion.exe Code.exe
 > * `D:\name`: **不被允许**，因为地址最后没有加上 `\`
 
 
-### 2. 统计累计工作时间
+### 2. 累计工作时间统计
 Rest Reminder提供三种统计方式：
 1. `count`
 2. `count-single-day`
