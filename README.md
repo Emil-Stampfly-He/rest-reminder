@@ -5,7 +5,7 @@ A small Rust-based Windows application that monitors whether you are working, an
 
 ## Features
 
-- Monitors specific IDE processes (e.g., `idea64.exe`, `rustrover64.exe`)
+- Monitors specific processes (e.g., `idea64.exe`, `rustrover64.exe`)
 - Tracks focused work time
 - Displays a blocking system popup message after indicated continuous work time
 
@@ -15,10 +15,11 @@ A small Rust-based Windows application that monitors whether you are working, an
 
 ## How It Works
 
-1. The program checks if IntelliJ IDEA or RustRover is currently running. You can add other processes, of course.
-2. If either is detected, it starts tracking the time.
-3. If 1 hour (if you want it to be shorter or longer, manually setting the time is possible) passes without closing the IDE, a system popup appears to remind you to take a break.
+1. The program checks if specified process(es) are currently running.
+2. If they are detected, it starts tracking the time.
+3. If specified time passes without closing the process(es), a system popup appears to remind you to take a break.
 4. The session is logged to a file for record-keeping.
+5. Use `count` family commands to calculate your total work time in a certain period.
 
 ## How to Use
 As described above, there are two different ways to use your Rest Reminder.
@@ -27,42 +28,57 @@ As described above, there are two different ways to use your Rest Reminder.
 
 To start counting your work time, run:
 ```aiignore
-rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ,,,
+rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ...
 ```
-If you do not indicate your focus_log.txt file location, it will be set to be `D:\` in default. For blank `<TIME>`, you need to indicate in second, not minute or hour. The default work time is set to 3600 seconds (1 hour). Besides, you can also indicate all the processes you would like you Rest Reminder to detect. The default processes are `idea64.exe` for IntelliJ IDEA and `rustrover64.exe` for RustRover.
- For example:
+* If you do not indicate your focus_log.txt file location, it will be set to be `D:\` in default
+* For blank `<TIME>`, you need to indicate in second, not minute or hour. The default work time is set to 3600 seconds (1 hour)
+* You can also indicate all the processes you would like you Rest Reminder to detect. The default processes are `idea64.exe` for IntelliJ IDEA and `rustrover64.exe` for RustRover
+
+For example:
 ```aiignore
 rest-reminder.exe rest -- D:\ 3600 Notion.exe Code.exe
 ```
-By indicate `D:\`, you are saving your `focus_log.txt` under your `D:\` directory. By indicating `3600`, you are telling your Rest Reminder to remind you to relax every 1 hour. By indicating `Notion.exe` and `Code.exe`, you are requiring Rest Reminder to detect if **Notion** or **VS Code** is working.
+* By indicate `D:\`, you are saving your `focus_log.txt` under your `D:\` directory
+* By indicating `3600`, you are telling your Rest Reminder to remind you to relax every 1 hour
+* By indicating `Notion.exe` and `Code.exe`, you are requiring Rest Reminder to detect if **Notion** or **VS Code** is working
 
 To see the name of a process, open your **Task Manager**.
 
-**Reminder: DO NOT add `focus_log.txt` after your file location!** For example:
-* "D:\\": allowed
-* "D:\\focus_log.txt": **NOT** allowed
-* "D:\\name": **NOT** allowed, since you missed a `\` suffix
+> **Reminder: DO NOT add `focus_log.txt` after your file location!** 
+> 
+> For example:
+> * `D:\`: allowed
+> * `D:\focus_log.txt`: **NOT** allowed
+> * `D:\name`: **NOT** allowed, since you missed a `\` suffix
 
 ### 2. Calculate your accumulated work time
-There are three possible ways to calculate your work time.
+There are three possible ways to calculate your work time:
+1. `count`
+2. `count-single-day`
+3. `count-precise`
 
 ### 2.1. Count your work time daily basis
 If you would like to specify an exact time interval, run the following:
 ```aiignore
 rest.reminder.exe count -- <PATH> <START> <END>
 ```
-For `PATH` variable, you are supposed to indicate the full file location of your `focus_log.txt`. For `START` and `END` variables, you should follow `YYYY-MM-DD` format. For example:
+* `PATH`: indicate the full file location of your `focus_log.txt`
+* `START` and `END`: follow `YYYY-MM-DD` format
+
+For example:
 ```aiignore
 rest-reminder.exe count -- D:\focus_log.txt 2025-04-19 2025-04-27
 ```
-Then, the Rest Reminder will automatically count your total working time during this period. Just a reminder, **DO NOT** forget to bring `focus_log.txt` at the end of your <PATH> variable.
+Then, the Rest Reminder will automatically count your total working time during this period. 
+
+> **ATTENTION**: **DO NOT** forget to bring `\focus_log.txt` at the end of your <PATH> variable.
 
 ### 2.2 Count your one-day work time
 To know how long you worked on an exact date, run the following:
 ```aiignore
 rest-reminder.exe count-single-day -- <PATH> <DAY>
 ```
-For `PATH` variable, use the format `YYYY-MM-DD`. For example:
+Use `YYYY-MM-DD` format for `PATH` variable as above. For example:
 ```aiignore
 rest-reminder.exe count-single-day -- D:\focus_log.txt 2025-04-26
 ```
@@ -90,5 +106,5 @@ After you change everything, make sure it works, then:
 ```aiignore
 cargo build --release
 ```
-The final .exe file should appear in your `\target\release`directory.
+The final `.exe` file should appear in your `~\target\release`directory.
 
