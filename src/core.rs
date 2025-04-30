@@ -9,7 +9,6 @@ use windows::core::PCWSTR;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 
-/// Main function
 pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>) {
     let mut sys = System::new_all();
 
@@ -23,7 +22,7 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                         process.name().contains(software)));
         if found {
             let start = Local::now();
-            println!("IDE detected, you are about to start working...");
+            println!("Process(es) detected, you are about to start working...");
             let start_time = Instant::now();
 
             loop {
@@ -36,20 +35,21 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                             .any(|software|
                                 process.name().contains(software)));
                 if !still_running {
-                    println!("IDE closed, you stopped. Time being reset...");
+                    println!("Process(es) ended, you finally decide to rest. Time being reset...");
                     break;
                 }
 
                 let elapsed = start_time.elapsed();
                 // Set for 1h
                 if elapsed.as_secs() >= time {
-                    println!("IDE still running, you need a break!");
+                    println!("Process(es) still running, you need a break!");
                     pop_up(time);
                     log(start, Local::now(), &mut log_location);
                     break;
                 }
             }
         } else {
+            println!("No process(es) detected, you are resting...");
             sleep(Duration::from_secs(10));
         }
     }

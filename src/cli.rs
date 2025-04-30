@@ -43,6 +43,7 @@ pub enum Command {
         end: DateTime<Local>,
     },
 
+    #[command(name = "count")]
     Count {
         #[arg(
             value_name = "PATH", 
@@ -66,6 +67,7 @@ pub enum Command {
         end_day: DateTime<Local>,
     },
 
+    #[command(name = "count-single-day")]
     CountSingleDay {
         #[arg(
             value_name = "PATH", 
@@ -83,9 +85,9 @@ pub enum Command {
     },
 
     // Rest reminder
+    #[command(name = "rest")]
     Rest {
         #[arg(
-            long,
             value_name = "PATH",
             default_value = r"D:\\focus_log.txt",
             value_parser = clap::value_parser!(PathBuf),
@@ -94,7 +96,6 @@ pub enum Command {
         log_to: PathBuf,
 
         #[arg(
-            long,
             value_name = "TIME",
             default_value_t = 3600,
             help = "How many seconds to work non stop before reminding",
@@ -102,7 +103,6 @@ pub enum Command {
         time: u64,
 
         #[arg(
-            long,
             value_name = "APP",
             num_args = 1..,
             default_values = &["idea64.exe", "rustrover64.exe"],
