@@ -1,6 +1,7 @@
 use clap::Parser;
 use rest_reminder::cli::{Cli, Command};
 use rest_reminder::core::run_rest_reminder;
+use rest_reminder::plotter::plot;
 use rest_reminder::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
 
 fn main() {
@@ -30,6 +31,10 @@ fn main() {
         }
         Command::Rest { log_to, time, app } => {
             run_rest_reminder(log_to, time, app);
+        }
+        Command::Plot {log_location, plot_location, start_day, end_day} => {
+            plot(log_location, plot_location, start_day, end_day).
+                expect("Failed to plot your working trend.");
         }
     }
 }

@@ -3,17 +3,19 @@
 ![Lines of Code](https://img.shields.io/endpoint?url=https://Emil-Stampfly-He.github.io/rest-reminder/badge.json)
 
 这是一个基于 Rust 的小型 Windows 应用程序，用于监控指定软件是否正在运行，并在连续使用指定时间后提醒你休息。
-它还会记录你的专注工作时长到文件中，且可以计算指定时间区间的工作时长。
+它还会记录你的专注工作时长到文件中，且可以计算指定时间区间的工作时长并生成走势图。
 
 ## 功能特点
 
 - 监控特定进程（例如 `idea64.exe`、`rustrover64.exe`）
 - 跟踪专注工作时长
-- 在连续工作 1 小时后显示系统弹窗提醒休息
+- 在连续工作指定时间后显示系统弹窗提醒休息
+- 展示你的工作时间走势
 
 ## 工作示例
 
 > ![截图](Screenshot.png)
+> ![走势](example.png)
 
 ### 示例 `focus_log.txt`: [`focus_log.txt`](focus_log.txt)
 
@@ -24,9 +26,10 @@
 3. 如果指定时间过去，而程序仍未关闭，程序将弹出一个系统提示框提醒你休息。
 4. 工作会话记录到文件中以供存档。
 5. 使用`count`族命令来获取指定时间段的工作时长。
+6. 使用`plot`命令来获取你的工作时长走势
 
 ## 使用方法
-如上所述，有两种方法来使用Rest Reminder。
+如上所述，有三种方法来使用Rest Reminder。
 
 ### 1. 工作检测
 如果你不打算更改任何东西，建议直接从 Releases 页面下载。在下载后，运行以下命令：
@@ -50,7 +53,6 @@ rest-reminder.exe rest -- D:\ 3600 Notion.exe Code.exe
 > * `D:\`: 允许
 > * `D:\focus_log.txt`: **不被允许**
 > * `D:\name`: **不被允许**，因为地址最后没有加上 `\`
-
 
 ### 2. 累计工作时间统计
 Rest Reminder提供三种统计方式：
@@ -99,3 +101,19 @@ rest-reminder.exe count-precise -- <PATH> <START> <END>
 rest-reminder.exe count-precise -- D:\focus_log.txt "2025-04-19 22:50:00" "2025-04-26 13:45:30"
 ```
 该命令会输出从 2025-04-19 22:50:00 到 2025-04-26 13:45:30 这段时间内的工作时长。
+
+### 3. 工作时长走势图
+你同样可以洞悉你的工作时长走势！执行以下命令：
+```aiignore
+rest-reminder.exe plot -- <LOG_PATH> <PLOT_PATH> <START> <END>
+```
+* `<LOG-PATH>`: `focus_log.txt`文件地址
+* `<PLOT-PATH>`: 你希望存储走势图的位置
+* `<START>` & `<END>`: 格式为`YYYY-MM-DD`
+
+示例：
+```aiignore
+rest-reminder.exe plot -- D:\focus_log.txt D:\plot.png 2025-04-16 2025-04-29
+```
+Rest Reminder将生成2025-04-16到2025-04-29期间的工作时间走势图，并将 `plot.png`图片存储到目录`D:\`。
+> **注意**: 必须对图片命名！

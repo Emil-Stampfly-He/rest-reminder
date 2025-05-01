@@ -69,10 +69,6 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
             sleep(Duration::from_secs(5));
         }
     }
-    
-    // Add shutdown hook
-    // Once shutdown is detected, log the time once again
-    // Shutdown completely
 }
 
 fn pop_up(time: u64) {

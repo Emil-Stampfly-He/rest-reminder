@@ -34,8 +34,11 @@ pub fn acc_work_time_precise(
             let start_time = parts.next().unwrap();
             let end_time = parts.next().unwrap();
 
+            // To NaiveDateTime
             let start_naive = NaiveDateTime::parse_from_str(start_time,"%Y-%m-%d %H:%M:%S")?;
             let end_naive = NaiveDateTime::parse_from_str(end_time,"%Y-%m-%d %H:%M:%S")?;
+            
+            // To DateTime<Local>
             let log_start_time = Local
                 .from_local_datetime(&start_naive)
                 .single()
@@ -66,9 +69,12 @@ pub fn acc_work_time(
     } else if end_day == start_day {
         return single_day_work_time(log_location, start_day);
     }
-
+    
+    // To NaiveDateTime
     let naive_start = start_day.date_naive().and_hms_opt(0, 0, 0).unwrap();
-    let naive_end   = end_day.date_naive().and_hms_opt(23,59,59).unwrap();
+    let naive_end = end_day.date_naive().and_hms_opt(23,59,59).unwrap();
+    
+    // To DateTime<Local>
     let start_dt = match Local.from_local_datetime(&naive_start) {
         LocalResult::Single(dt) => dt,
         _ => panic!("Invalid local start_day"),
@@ -87,7 +93,9 @@ pub fn single_day_work_time(
     day: DateTime<Local>
 ) -> Result<i64, Box<dyn Error>> {
     let naive_start = day.date_naive().and_hms_opt(0, 0, 0).unwrap();
-    let naive_end   = day.date_naive().and_hms_opt(23, 59, 59).unwrap();
+    let naive_end = day.date_naive().and_hms_opt(23, 59, 59).unwrap();
+    
+    // To DateTime<Local>
     let start_dt = match Local.from_local_datetime(&naive_start) {
         LocalResult::Single(dt) => dt,
         _ => return Err("Invalid local start time".into()),
@@ -113,11 +121,13 @@ fn parse_log_entries(log_location: &PathBuf) -> Result<Vec<(DateTime<Local>, Dat
             Some(i) => i,
             None => continue,
         };
+        
         let times_str = &line[1..end_bracket]; // "YYYY-MM-DD HH:MM:SS ~ YYYY-MM-DD HH:MM:SS"
         let mut parts  = times_str.split(" ~ ");
         let s_str = parts.next().unwrap();
         let e_str = parts.next().unwrap();
         
+        // To NaiveDateTime
         let s_naive = NaiveDateTime::parse_from_str(s_str, "%Y-%m-%d %H:%M:%S")?;
         let e_naive = NaiveDateTime::parse_from_str(e_str, "%Y-%m-%d %H:%M:%S")?;
 
@@ -140,11 +150,11 @@ fn parse_log_entries(log_location: &PathBuf) -> Result<Vec<(DateTime<Local>, Dat
 fn calculate_overlap(
     entries: &[(DateTime<Local>, DateTime<Local>)],
     range_start: DateTime<Local>,
-    range_end:   DateTime<Local>,
+    range_end: DateTime<Local>,
 ) -> i64 {
     entries.iter().fold(Duration::zero(), |acc, &(s, e)| {
         let overlap_start = s.max(range_start);
-        let overlap_end   = e.min(range_end);
+        let overlap_end = e.min(range_end);
         if overlap_start < overlap_end {
             acc + (overlap_end - overlap_start)
         } else {
