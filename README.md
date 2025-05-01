@@ -4,8 +4,8 @@
 
 简体中文：[README_zh.md](./README-zh_CN.md).
 
-A small Rust-based Windows application that monitors whether you are working, and reminds you to take a break after one hour of continuous usage.
-It also logs your focused work sessions to a file， helps you calculate your total work time and generate your working time trend chart.
+A small Rust-based Windows application that monitors whether you are working, and reminds you to take a break after specified time of continuous usage.
+It also logs your focused work sessions to a file, helps you calculate your total work time and generate your working time trend chart.
 
 ## Features
 
