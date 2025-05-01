@@ -15,7 +15,7 @@ jobs:
   cloc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Count & export JSON
         uses: djdefi/cloc-action@6
@@ -36,7 +36,7 @@ jobs:
           EOF
 
       - name: Upload badge artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: badge.json
 
