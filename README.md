@@ -1,4 +1,7 @@
 # Rest Reminder (Windows User Only Currently)
+![Lines of Code](https://Emil-Stampfly-He.github.io/rest-reminder/badge.json)
+
+
 简体中文：[README_zh.md](./README-zh_CN.md).
 
 A small Rust-based Windows application that monitors whether you are working, and reminds you to take a break after one hour of continuous usage. It also logs your focused work sessions to a file and helps you calculate your total work time.
