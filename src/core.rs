@@ -2,6 +2,7 @@ use std::collections::{HashMap};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::mpsc::channel;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use chrono::{DateTime, Local};
@@ -13,6 +14,10 @@ use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK};
 
 pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>) {
     let mut sys = System::new_all();
+    let (tx, rx) = channel();
+    ctrlc::set_handler(move || tx.send(())
+        .expect("Failed to send ctrl-c signal to the thread."))
+        .expect("Error setting Ctrl-C handler");
 
     loop {
         sys.refresh_processes();
@@ -43,6 +48,14 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 }
 
                 let elapsed = start_time.elapsed();
+                // If ctrl-c is pressed, log the time and exit
+                if let Ok(_) = rx.try_recv() {
+                    println!("Exiting...");
+                    log(start, Local::now(), &mut log_location);
+                    println!("Bye!");
+                    std::process::exit(0);  
+                }
+                
                 if elapsed.as_secs() >= time {
                     println!("Process(es) still running, you need a break!");
                     pop_up(time);
@@ -56,6 +69,10 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
             sleep(Duration::from_secs(5));
         }
     }
+    
+    // Add shutdown hook
+    // Once shutdown is detected, log the time once again
+    // Shutdown completely
 }
 
 fn pop_up(time: u64) {
@@ -74,7 +91,7 @@ fn pop_up(time: u64) {
     let rng = rand::rng().random_range(0..slogans.len());
     let message_string = match slogans.get(&rng) {
         Some(slogan) => slogan.to_string(),
-        None => panic!("No slogan found!")
+        None => panic!("Index out of bounds!")
     };
     
     let message = widestring::U16CString::from_str(

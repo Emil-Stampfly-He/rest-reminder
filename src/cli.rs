@@ -17,8 +17,8 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-
-    // Count precise working time
+    
+    // Statistics
     #[command(name = "count-precise")]
     CountPrecise {
         #[arg(

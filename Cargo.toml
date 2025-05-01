@@ -11,6 +11,7 @@ widestring = "1.0"
 chrono = "0.4.40"
 clap = { version = "4.4", features = ["derive"]}
 rand = "0.9.1"
+ctrlc = "3.4.6"
 
 [build-dependencies]
 winresource = "0.1.20"
