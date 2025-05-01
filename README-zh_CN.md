@@ -1,4 +1,4 @@
-# 休息提醒工具（目前仅限 Windows 用户）
+# 休息提醒工具（目前仅限 Windows 用户）![Lines of Code](https://img.shields.io/endpoint?url=https://Emil-Stampfly-He.github.io/rest-reminder/badge.json)
 
 这是一个基于 Rust 的小型 Windows 应用程序，用于监控指定软件是否正在运行，并在连续使用指定时间后提醒你休息。
 它还会记录你的专注工作时长到文件中，且可以计算指定时间区间的工作时长。
