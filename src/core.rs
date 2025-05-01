@@ -28,7 +28,8 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
             let start_time = Instant::now();
 
             loop {
-                sleep(Duration::from_secs(10));
+                // Heartbeat: every 2 seconds
+                sleep(Duration::from_secs(2));
                 sys.refresh_processes();
                 let still_running = sys.processes()
                     .values()
@@ -42,7 +43,6 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 }
 
                 let elapsed = start_time.elapsed();
-                // Set for 1h
                 if elapsed.as_secs() >= time {
                     println!("Process(es) still running, you need a break!");
                     pop_up(time);
@@ -51,8 +51,9 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 }
             }
         } else {
+            // Try to detect any specified process every 5 seconds
             println!("No process(es) detected, you are resting...");
-            sleep(Duration::from_secs(10));
+            sleep(Duration::from_secs(5));
         }
     }
 }
