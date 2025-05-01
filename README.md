@@ -1,6 +1,5 @@
 # Rest Reminder (Windows User Only Currently)
-![Lines of Code](https://Emil-Stampfly-He.github.io/rest-reminder/badge.json)
-
+![Lines of Code](https://img.shields.io/endpoint?url=https://Emil-Stampfly-He.github.io/rest-reminder/badge.json)
  
 简体中文：[README_zh.md](./README-zh_CN.md).
 
