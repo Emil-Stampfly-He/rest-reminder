@@ -1,9 +1,11 @@
+use std::collections::{HashMap};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use chrono::{DateTime, Local};
+use rand::Rng;
 use sysinfo::System;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::HWND;
@@ -35,7 +37,7 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                             .any(|software|
                                 process.name().contains(software)));
                 if !still_running {
-                    println!("Process(es) ended, you finally decide to rest. Time being reset...");
+                    println!("Process(es) ended, you finally decide to rest...");
                     break;
                 }
 
@@ -58,8 +60,22 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
 fn pop_up(time: u64) {
     let title = widestring::U16CString::from_str(
         "REST REMINDEEEEEEEEEEEEEEEEER").unwrap();
+    
+    let slogans = HashMap::from([
+        (0, format!("{time} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!")),
+        (1, format!("{time} seconds OF UNSTOPPABLE GRIND! YOUR LEGS ARE CRYING FOR A BREAK! STAND UP AND SHAKE IT OFF!!!")),
+        (2, format!("{time} seconds STRAIGHT LIKE A NINJA! YOUR BACK IS REBELLING! POWER UP WITH A QUICK STAND-UP BREAK!!!")),
+        (3, format!("{time} seconds WITHOUT PAUSE! ALERT: MUSCLES ON STRIKE! RISE AND RELEASE WITH A STRETCH!!!")),
+        (4, format!("{time} seconds NONSTOP MODE ENGAGED! WARNING: BRAIN FOG IMMINENT! HIT THE PAUSE AND STAND TALL!!!")),
+        (5, format!("{time} seconds AND COUNTING! MISSION: TAKE A BREAK! DEPLOY YOUR LEGS FOR A STAND-UP MISSION!!!")),
+    ]);
 
-    let message_string = format!("{time} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!");
+    let rng = rand::rng().random_range(0..slogans.len());
+    let message_string = match slogans.get(&rng) {
+        Some(slogan) => slogan.to_string(),
+        None => panic!("No slogan found!")
+    };
+    
     let message = widestring::U16CString::from_str(
         message_string.as_str())
         .unwrap();
