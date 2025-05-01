@@ -35,10 +35,15 @@ jobs:
           }
           EOF
 
-      - name: Upload badge artifact
+      - name: Prepare site folder
+        run: |
+          mkdir -p site
+          mv badge.json site/
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: badge.json
+          path: site
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
