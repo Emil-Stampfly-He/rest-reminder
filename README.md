@@ -16,6 +16,8 @@ A small Rust-based Windows application that monitors whether you are working, an
 
 > ![Screenshot](Screenshot.png)
 
+### Sample `focus_log.txt`: [`focus_log.txt`](focus_log.txt)
+
 ## How It Works
 
 1. The program checks if specified process(es) are currently running.

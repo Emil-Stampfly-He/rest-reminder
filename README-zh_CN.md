@@ -15,6 +15,8 @@
 
 > ![截图](Screenshot.png)
 
+### 示例 `focus_log.txt`: [`focus_log.txt`](focus_log.txt)
+
 ## 工作原理
 
 1. 程序检查是否正在运行指定程序。
