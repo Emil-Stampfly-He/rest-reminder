@@ -1,0 +1,44 @@
+name: Count Lines of Code
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  cloc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Count & export JSON
+        uses: djdefi/cloc-action@6
+        with:
+          options: '--json --report-file=cloc.json'
+
+      - name: Build badge JSON
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          total=$(jq .SUM.code cloc.json)
+          cat > badge.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Lines of Code",
+            "message": "$total",
+            "color": "blue"
+          }
+          EOF
+
+      - name: Upload badge artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: badge.json
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
