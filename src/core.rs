@@ -20,6 +20,12 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
         .expect("Error setting Ctrl-C handler");
 
     loop {
+        // checkpoint
+        if let Ok(_) = rx.try_recv() {
+            println!("Bye!");
+            std::process::exit(0);
+        }
+        
         sys.refresh_processes();
         let found = sys.processes()
             .values()
@@ -27,6 +33,13 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 app.iter()
                     .any(|software|
                         process.name().contains(software)));
+
+        // checkpoint
+        if let Ok(_) = rx.try_recv() {
+            println!("Bye!");
+            std::process::exit(0);
+        }
+        
         if found {
             let start = Local::now();
             println!("Process(es) detected, you are about to start working...");
@@ -48,7 +61,7 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 }
 
                 let elapsed = start_time.elapsed();
-                // If ctrl-c is pressed, log the time and exit
+                // checkpoint, log the time and exit
                 if let Ok(_) = rx.try_recv() {
                     println!("Exiting...");
                     log(start, Local::now(), &mut log_location);
@@ -66,7 +79,12 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
         } else {
             // Try to detect any specified process every 5 seconds
             println!("No process(es) detected, you are resting...");
-            sleep(Duration::from_secs(5));
+            // checkpoint
+            if let Ok(_) = rx.try_recv() {
+                println!("Bye!");
+                std::process::exit(0);
+            }
+            sleep(Duration::from_secs(1));
         }
     }
 }
