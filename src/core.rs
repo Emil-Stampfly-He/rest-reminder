@@ -33,12 +33,6 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
                 app.iter()
                     .any(|software|
                         process.name().contains(software)));
-
-        // checkpoint
-        if let Ok(_) = rx.try_recv() {
-            println!("Bye!");
-            std::process::exit(0);
-        }
         
         if found {
             let start = Local::now();
@@ -79,11 +73,6 @@ pub fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>)
         } else {
             // Try to detect any specified process every 5 seconds
             println!("No process(es) detected, you are resting...");
-            // checkpoint
-            if let Ok(_) = rx.try_recv() {
-                println!("Bye!");
-                std::process::exit(0);
-            }
             sleep(Duration::from_secs(1));
         }
     }
