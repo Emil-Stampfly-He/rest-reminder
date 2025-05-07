@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 #[command(
     name = "Rest Reminder",
     author = "Emil Stampfly He",
-    version = "1.2.1",
+    version = "1.2.2",
     about = "Detects if you're working too long and reminds you to rest.",
 )]
 pub struct Cli {
