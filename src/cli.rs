@@ -22,7 +22,7 @@ pub enum Command {
     #[command(name = "count-precise")]
     CountPrecise {
         #[arg(
-            value_name = "PATH", 
+            value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
         )]
@@ -46,7 +46,7 @@ pub enum Command {
     #[command(name = "count")]
     Count {
         #[arg(
-            value_name = "PATH", 
+            value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
         )]
@@ -70,7 +70,7 @@ pub enum Command {
     #[command(name = "count-single-day")]
     CountSingleDay {
         #[arg(
-            value_name = "PATH", 
+            value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
         )]
@@ -88,7 +88,7 @@ pub enum Command {
     #[command(name = "rest")]
     Rest {
         #[arg(
-            value_name = "PATH",
+            value_name = "LOG_PATH",
             default_value = r"D:\\focus_log.txt",
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
@@ -115,7 +115,7 @@ pub enum Command {
     #[command(name = "plot")]
     Plot {
         #[arg(
-            value_name = "PATH",
+            value_name = "LOG_PATH",
             default_value = r"D:\\focus_log.txt",
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
@@ -123,7 +123,7 @@ pub enum Command {
         log_location: PathBuf,
 
         #[arg(
-            value_name = "PATH",
+            value_name = "PLOT_PATH",
             default_value = r"D:\\plot.png",
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
