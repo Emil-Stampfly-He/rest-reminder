@@ -37,7 +37,7 @@ As described above, there are three different ways to use your Rest Reminder.
 
 To start counting your work time, run:
 ```aiignore
-rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ...
+rest-reminder.exe rest -- -l <PATH> -t <TIME> -a <PROCESS_1> <PROCESS_2> ...
 ```
 * If you do not indicate your `focus_log.txt` file location, it will be set to be `D:\` in default
 * For blank `<TIME>`, you need to indicate in second, not minute or hour. The default work time is set to 3600 seconds (1 hour)
@@ -45,7 +45,7 @@ rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ...
 
 For example:
 ```aiignore
-rest-reminder.exe rest -- D:\ 3600 Notion.exe Code.exe
+rest-reminder.exe rest -- -l D:\ -t 3600 -a Notion.exe Code.exe
 ```
 * By indicate `D:\`, you are saving your `focus_log.txt` under your `D:\` directory
 * By indicating `3600`, you are telling your Rest Reminder to remind you to relax every 1 hour
@@ -69,14 +69,14 @@ There are three possible ways to calculate your work time:
 #### 2.1. Count your work time daily basis
 If you would like to specify an exact time interval, run the following:
 ```aiignore
-rest.reminder.exe count -- <PATH> <START> <END>
+rest.reminder.exe count -- -l <PATH> -s <START> -e <END>
 ```
 * `PATH`: indicate the full file location of your `focus_log.txt`
 * `START` and `END`: follow `YYYY-MM-DD` format
 
 For example:
 ```aiignore
-rest-reminder.exe count -- D:\focus_log.txt 2025-04-19 2025-04-27
+rest-reminder.exe count -- -l D:\focus_log.txt -s 2025-04-19 -e 2025-04-27
 ```
 Then, the Rest Reminder will automatically count your total working time during this period. 
 
@@ -85,28 +85,28 @@ Then, the Rest Reminder will automatically count your total working time during 
 #### 2.2 Count your one-day work time
 To know how long you worked on an exact date, run the following:
 ```aiignore
-rest-reminder.exe count-single-day -- <PATH> <DAY>
+rest-reminder.exe count-single-day -- -l <PATH> -d <DAY>
 ```
 Use `YYYY-MM-DD` format for `PATH` variable as above. For example:
 ```aiignore
-rest-reminder.exe count-single-day -- D:\focus_log.txt 2025-04-26
+rest-reminder.exe count-single-day -- -l D:\focus_log.txt -d 2025-04-26
 ```
 Then it will help to calculate your total work time in 2025-04-26.
 
 #### 2.3 Count your precise work time
 Sometimes you do with to know exactly how long you worked for a certain period of time. You can run the following:
 ```aiignore
-rest-reminder.exe count-precise -- <PATH> <START> <END>
+rest-reminder.exe count-precise -- -l <PATH> -s <START> -e <END>
 ```
 You need to format your `START` and `END` like `YYYY-MM-DD HH-MM-SS` **AND QUOTE THEM WITH QUOTATION MARKS**. For example:
 ```aiignore
-rest-reminder.exe count-precise -- D:\focus_log.txt "2025-04-19 22:50:00" "2025-04-26 13:45:30"
+rest-reminder.exe count-precise -- -l D:\focus_log.txt -s "2025-04-19 22:50:00" -e "2025-04-26 13:45:30"
 ```
 
 ### 3. Plot your working trend
 You can also have an insight into your working trend with Rest Reminder! Run following:
 ```aiignore
-rest-reminder.exe plot -- <LOG_PATH> <PLOT_PATH> <START> <END>
+rest-reminder.exe plot -- -l <LOG_PATH> -p <PLOT_PATH> -s <START> -e <END>
 ```
 * `<LOG-PATH>`: location of your `focus_log.txt` file
 * `<PLOT-PATH>`: location of your working trend chart to save to
@@ -114,7 +114,7 @@ rest-reminder.exe plot -- <LOG_PATH> <PLOT_PATH> <START> <END>
 
 For example:
 ```aiignore
-rest-reminder.exe plot -- D:\focus_log.txt D:\plot.png 2025-04-16 2025-04-29
+rest-reminder.exe plot -- -l D:\focus_log.txt -p D:\plot.png -s 2025-04-16 -e 2025-04-29
 ```
 Rest Reminder will generate your working trend during 2025-04-16 to 2025-04-29 and save your `plot.png` picture under `D:\`.
 > **ATTENTION**: you need to name your picture like `plot.png` above!

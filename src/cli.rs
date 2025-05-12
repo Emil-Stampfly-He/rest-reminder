@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 #[command(
     name = "Rest Reminder",
     author = "Emil Stampfly He",
-    version = "1.2.2",
+    version = "1.3.0",
     about = "Detects if you're working too long and reminds you to rest.",
 )]
 pub struct Cli {
@@ -22,6 +22,8 @@ pub enum Command {
     #[command(name = "count-precise")]
     CountPrecise {
         #[arg(
+            short,
+            long,
             value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
@@ -29,6 +31,8 @@ pub enum Command {
         log_location: PathBuf,
 
         #[arg(
+            short,
+            long,
             value_name = "START",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local,
@@ -36,6 +40,8 @@ pub enum Command {
         start: DateTime<Local>,
 
         #[arg(
+            short,
+            long,
             value_name = "END",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local,
@@ -46,6 +52,8 @@ pub enum Command {
     #[command(name = "count")]
     Count {
         #[arg(
+            short,
+            long,
             value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
@@ -53,6 +61,8 @@ pub enum Command {
         log_location: PathBuf,
 
         #[arg(
+            short,
+            long,
             value_name = "START",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local_day,
@@ -60,6 +70,8 @@ pub enum Command {
         start_day: DateTime<Local>,
 
         #[arg(
+            short,
+            long,
             value_name = "END",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local_day,
@@ -70,6 +82,8 @@ pub enum Command {
     #[command(name = "count-single-day")]
     CountSingleDay {
         #[arg(
+            short,
+            long,
             value_name = "LOG_PATH", 
             default_value = r"D:\\focus_log.txt",
             value_parser = ValueParser::path_buf()
@@ -77,6 +91,8 @@ pub enum Command {
         log_location: PathBuf,
 
         #[arg(
+            short,
+            long,
             value_name = "START",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local_day,
@@ -88,6 +104,8 @@ pub enum Command {
     #[command(name = "rest")]
     Rest {
         #[arg(
+            short,
+            long,
             value_name = "LOG_PATH",
             default_value = r"D:\\focus_log.txt",
             value_parser = clap::value_parser!(PathBuf),
@@ -96,6 +114,8 @@ pub enum Command {
         log_to: PathBuf,
 
         #[arg(
+            short,
+            long,
             value_name = "TIME",
             default_value_t = 3600,
             help = "How many seconds to work non stop before reminding",
@@ -103,6 +123,8 @@ pub enum Command {
         time: u64,
 
         #[arg(
+            short,
+            long,
             value_name = "APP",
             num_args = 1..,
             default_values = &["idea64.exe", "rustrover64.exe"],
@@ -115,6 +137,8 @@ pub enum Command {
     #[command(name = "plot")]
     Plot {
         #[arg(
+            short,
+            long,
             value_name = "LOG_PATH",
             default_value = r"D:\\focus_log.txt",
             value_parser = clap::value_parser!(PathBuf),
@@ -123,6 +147,8 @@ pub enum Command {
         log_location: PathBuf,
 
         #[arg(
+            short,
+            long,
             value_name = "PLOT_PATH",
             default_value = r"D:\\plot.png",
             value_parser = clap::value_parser!(PathBuf),
@@ -131,6 +157,8 @@ pub enum Command {
         plot_location: PathBuf,
         
         #[arg(
+            short,
+            long,
             value_name = "START",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local_day,
@@ -138,6 +166,8 @@ pub enum Command {
         start_day: DateTime<Local>,
 
         #[arg(
+            short,
+            long,
             value_name = "END",
             help = "Format: YYYY-MM-DD HH:MM:SS",
             value_parser = parse_datetime_local_day,

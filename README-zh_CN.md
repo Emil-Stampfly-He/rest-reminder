@@ -35,7 +35,7 @@
 如果你不打算更改任何东西，建议直接从 Releases 页面下载。在下载后，运行以下命令：
 
 ```aiignore
-rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ...
+rest-reminder.exe rest -- -l <PATH> -t <TIME> -a <PROCESS_1> <PROCESS_2> ...
 ```
 * 若未指定`focus_log.txt`的文件存放位置，程序会自动指定`D:\`为默认地址
 * `<TIME>`需要以**秒**为单位填写（不能用分钟或小时）。默认值为3600秒（1小时）
@@ -43,7 +43,7 @@ rest-reminder.exe rest -- <PATH> <TIME> <PROCESS_1> <PROCESS_2> ...
 
 例如：
 ```aiignore
-rest-reminder.exe rest -- D:\ 3600 Notion.exe Code.exe
+rest-reminder.exe rest -- -l D:\ -t 3600 -a Notion.exe Code.exe
 ```
 * 指定`D:\`时，`focus_log.txt`会保存在`D:\`目录下
 * 指定`3600`时，Rest Reminder会每隔1小时提醒你休息
@@ -63,14 +63,14 @@ Rest Reminder提供三种统计方式：
 #### 2.1. 按天区间统计
 如果想统计某个日期区间的总工作时长：
 ```aiignore
-rest-reminder.exe count -- <PATH> <START> <END>
+rest.reminder.exe count -- -l <PATH> -s <START> -e <END>
 ```
 * `<PATH>`：填写`focus_log.txt`的完整路径（包括文件名）
 * `<START>`、`<END>`：按`YYYY-MM-DD`格式指定起止日期
 
 示例：
 ```aiignore
-rest-reminder.exe count -- D:\focus_log.txt 2025-04-19 2025-04-27
+rest-reminder.exe count -- -l D:\focus_log.txt -s 2025-04-19 -e 2025-04-27
 ```
 Rest Reminder 会自动计算从 2025-04-19 到 2025-04-27 期间的总工作时长。
 > **提示**：别忘了在`<PATH>`后面加上`\focus_log.txt`！
@@ -78,34 +78,34 @@ Rest Reminder 会自动计算从 2025-04-19 到 2025-04-27 期间的总工作时
 #### 2.2. 查询单日工作时长
 要统计某一天的工作时长，运行：
 ```aiignore
-rest_reminder.exe count-single-day -- <PATH> <DAY>
+rest-reminder.exe count-single-day -- -l <PATH> -d <DAY>
 ```
 * `<PATH>`：同上，`focus_log.txt`的完整路径
 * `<DAY>`：按`YYYY-MM-DD`格式指定日期
 
 示例：
 ```aiignore
-rest-reminder.exe count-single-day -- D:\focus_log.txt 2025-04-26
+rest-reminder.exe count-single-day -- -l D:\focus_log.txt -d 2025-04-26
 ```
 该命令会输出2025-04-26当天的工作总时长。
 
 #### 2.3. 精确时间段统计
 如果想统计某个具体时间段的工作时长，运行：
 ```aiignore
-rest-reminder.exe count-precise -- <PATH> <START> <END>
+rest-reminder.exe count-precise -- -l <PATH> -s <START> -e <END>
 ```
 * `<START>`、`<END>`：按`YYYY-MM-DD HH-MM-SS`格式指定，并**用双引号括起来**
 
 示例：
 ```aiignore
-rest-reminder.exe count-precise -- D:\focus_log.txt "2025-04-19 22:50:00" "2025-04-26 13:45:30"
+rest-reminder.exe count-precise -- -l D:\focus_log.txt -s "2025-04-19 22:50:00" -e "2025-04-26 13:45:30"
 ```
 该命令会输出从 2025-04-19 22:50:00 到 2025-04-26 13:45:30 这段时间内的工作时长。
 
 ### 3. 工作时长走势图
 你同样可以洞悉你的工作时长走势！执行以下命令：
 ```aiignore
-rest-reminder.exe plot -- <LOG_PATH> <PLOT_PATH> <START> <END>
+rest-reminder.exe plot -- -l <LOG_PATH> -p <PLOT_PATH> -s <START> -e <END>
 ```
 * `<LOG-PATH>`: `focus_log.txt`文件地址
 * `<PLOT-PATH>`: 你希望存储走势图的位置
@@ -113,7 +113,7 @@ rest-reminder.exe plot -- <LOG_PATH> <PLOT_PATH> <START> <END>
 
 示例：
 ```aiignore
-rest-reminder.exe plot -- D:\focus_log.txt D:\plot.png 2025-04-16 2025-04-29
+rest-reminder.exe plot -- -l D:\focus_log.txt -p D:\plot.png -s 2025-04-16 -e 2025-04-29
 ```
 Rest Reminder将生成2025-04-16到2025-04-29期间的工作时间走势图，并将 `plot.png`图片存储到目录`D:\`。
 > **注意**: 必须对图片命名！
