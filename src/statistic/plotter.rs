@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use chrono::{DateTime, Local};
 use plotters::chart::ChartBuilder;
 use plotters::prelude::*;
-use crate::statistics::single_day_work_time;
+use crate::statistic::statistics::single_day_work_time;
 
 pub fn plot(
     log_location: PathBuf,

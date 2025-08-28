@@ -2,11 +2,13 @@
 mod test_first {
     use std::path::PathBuf;
     use chrono::{DateTime, Local, LocalResult, NaiveDateTime, TimeZone};
-    use crate::statistics::acc_work_time_precise;
+    use rest_reminder::statistic::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
+
+    const TEST_FOCUS_LOG_PATH: &str = "tests/test_focus_log.txt";
     
     #[test]
     fn test_zero_duration() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let dt = local_dt("2025-04-19 00:00:00");
         assert_eq!(acc_work_time_precise(path.clone(), dt, dt).unwrap(), 0);
     }
@@ -14,7 +16,7 @@ mod test_first {
     #[test]
     #[should_panic(expected = "End time must be greater than start time!")]
     fn test_end_before_start() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_dt("2025-04-19 23:00:00");
         let end = local_dt("2025-04-19 22:00:00");
         let _ = acc_work_time_precise(path, start, end);
@@ -27,7 +29,7 @@ mod test_first {
     //    total = 13 + 12 + 11 = 36s
     #[test]
     fn test_accumulate_within_range() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_dt("2025-04-19 22:00:00");
         let end = local_dt("2025-04-19 23:00:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 36);
@@ -39,7 +41,7 @@ mod test_first {
     //    total = 10s
     #[test]
     fn test_partial_overlap_start_inside() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_dt("2025-04-19 22:54:50");
         let end = local_dt("2025-04-19 22:55:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 10);
@@ -48,26 +50,22 @@ mod test_first {
     // No record, should be 0
     #[test]
     fn test_no_entries_in_range() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_dt("2025-04-19 21:00:00");
         let end = local_dt("2025-04-19 22:00:00");
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 0);
     }
 
-    use crate::statistics::{acc_work_time, single_day_work_time};
-
-   
-
     #[test]
     fn test_single_day_no_entries() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let day = local_date("2025-04-18");
         assert_eq!(single_day_work_time(path, day).unwrap(), 0);
     }
 
     #[test]
     fn test_single_day_2025_04_19() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let day = local_date("2025-04-19");
         // Entries:
         // 22:48:24–22:48:37 = 13s
@@ -81,7 +79,7 @@ mod test_first {
 
     #[test]
     fn test_single_day_2025_04_21_cross_midnight() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let day = local_date("2025-04-21");
         // Entries on 4/21, including a segment past midnight (counted only until 23:59:59).
         // Verified total seconds: 29,372
@@ -91,7 +89,7 @@ mod test_first {
     #[test]
     #[should_panic(expected = "End day must be greater than start day!")]
     fn test_acc_work_time_panic_on_invalid_range() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-20");
         let end   = local_date("2025-04-19");
         let _ = acc_work_time(path, start, end);
@@ -99,7 +97,7 @@ mod test_first {
 
     #[test]
     fn test_acc_work_time_same_day() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let day = local_date("2025-04-20");
         let single = single_day_work_time(path.clone(), day).unwrap();
         let acc = acc_work_time(path, day, day).unwrap();
@@ -108,7 +106,7 @@ mod test_first {
 
     #[test]
     fn test_acc_work_time_span_19_to_23() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-19");
         let end   = local_date("2025-04-23");
         assert_eq!(acc_work_time(path, start, end).unwrap(), 129_745);
@@ -116,7 +114,7 @@ mod test_first {
 
     #[test]
     fn test_acc_work_time_span_with_empty_days() {
-        let path = PathBuf::from(r"D:\focus_log.txt");
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-18"); // no entries on 4/18
         let end   = local_date("2025-04-20");
         // Equivalent to 4/19 (117s) + 4/20 (8063s) = 8180s

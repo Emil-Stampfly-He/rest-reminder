@@ -3,11 +3,33 @@ use std::path::PathBuf;
 use chrono::{DateTime, Local, LocalResult, NaiveDate, NaiveDateTime, TimeZone};
 use clap::{Parser, Subcommand};
 
+// Platform-specific default paths
+#[cfg(windows)]
+const DEFAULT_LOG_PATH: &str = r"D:\\focus_log.txt";
+#[cfg(windows)]
+const DEFAULT_PLOT_PATH: &str = r"D:\\plot.png";
+#[cfg(windows)]
+const DEFAULT_LOG_DIR: &str = r"D:\\";
+
+#[cfg(target_os = "macos")]
+const DEFAULT_LOG_PATH: &str = "~/Desktop/focus_log.txt";
+#[cfg(target_os = "macos")]  
+const DEFAULT_PLOT_PATH: &str = "~/Desktop/plot.png";
+#[cfg(target_os = "macos")]
+const DEFAULT_LOG_DIR: &str = "~/Desktop";
+
+#[cfg(not(any(windows, target_os = "macos")))]
+const DEFAULT_LOG_PATH: &str = "./focus_log.txt";
+#[cfg(not(any(windows, target_os = "macos")))]
+const DEFAULT_PLOT_PATH: &str = "./plot.png";
+#[cfg(not(any(windows, target_os = "macos")))]
+const DEFAULT_LOG_DIR: &str = "./";
+
 #[derive(Parser, Debug)]
 #[command(
     name = "Rest Reminder",
     author = "Emil Stampfly He",
-    version = "1.3.0",
+    version = "2.0.0",
     about = "Detects if you're working too long and reminds you to rest.",
 )]
 pub struct Cli {
@@ -25,7 +47,7 @@ pub enum Command {
             short,
             long,
             value_name = "LOG_PATH", 
-            default_value = r"D:\\focus_log.txt",
+            default_value = DEFAULT_LOG_PATH,
             value_parser = ValueParser::path_buf()
         )]
         log_location: PathBuf,
@@ -55,7 +77,7 @@ pub enum Command {
             short,
             long,
             value_name = "LOG_PATH", 
-            default_value = r"D:\\focus_log.txt",
+            default_value = DEFAULT_LOG_PATH,
             value_parser = ValueParser::path_buf()
         )]
         log_location: PathBuf,
@@ -85,7 +107,7 @@ pub enum Command {
             short,
             long,
             value_name = "LOG_PATH", 
-            default_value = r"D:\\focus_log.txt",
+            default_value = DEFAULT_LOG_PATH,
             value_parser = ValueParser::path_buf()
         )]
         log_location: PathBuf,
@@ -107,7 +129,7 @@ pub enum Command {
             short,
             long,
             value_name = "LOG_PATH",
-            default_value = r"D:\\focus_log.txt",
+            default_value = DEFAULT_LOG_DIR,
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
         )]
@@ -122,12 +144,35 @@ pub enum Command {
         )]
         time: u64,
 
+        #[cfg(windows)]
         #[arg(
             short,
             long,
             value_name = "APP",
             num_args = 1..,
             default_values = &["idea64.exe", "rustrover64.exe"],
+            help = "What software(s) to detect",
+        )]
+        app: Vec<String>,
+
+        #[cfg(target_os = "macos")]
+        #[arg(
+            short,
+            long,
+            value_name = "APP",
+            num_args = 1..,
+            default_values = &["IntelliJ IDEA", "RustRover", "Code", "Xcode"],
+            help = "What software(s) to detect",
+        )]
+        app: Vec<String>,
+
+        #[cfg(not(any(windows, target_os = "macos")))]
+        #[arg(
+            short,
+            long,
+            value_name = "APP",
+            num_args = 1..,
+            default_values = &["idea", "rustrover", "code"],
             help = "What software(s) to detect",
         )]
         app: Vec<String>,
@@ -140,7 +185,7 @@ pub enum Command {
             short,
             long,
             value_name = "LOG_PATH",
-            default_value = r"D:\\focus_log.txt",
+            default_value = DEFAULT_LOG_PATH,
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
         )]
@@ -150,7 +195,7 @@ pub enum Command {
             short,
             long,
             value_name = "PLOT_PATH",
-            default_value = r"D:\\plot.png",
+            default_value = DEFAULT_PLOT_PATH,
             value_parser = clap::value_parser!(PathBuf),
             help = "Where to save the log file",
         )]

@@ -16,8 +16,8 @@ It also logs your focused work sessions to a file, helps you calculate your tota
 
 ## Working Sample
 
-> ![Screenshot](Screenshot.png)
-> ![Working Trend](example.png)
+> ![Screenshot](pics/Screenshot.png)
+> ![Working Trend](pics/example.png)
 
 ### Sample `focus_log.txt`: [`focus_log.txt`](focus_log.txt)
 
