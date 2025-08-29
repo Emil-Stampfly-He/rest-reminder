@@ -215,12 +215,11 @@ impl PluginManager {
     
     // Check if plugins shouldn't be loaded when initializing
     fn should_ignore_plugin(code: &str) -> bool {
-        // Self::should_ignore_plugin_regex(code)
-        Self::should_ignore_plugin_python_exec(code)
+        Self::should_ignore_plugin_regex(code)
     }
 
     // Match _SHOULD_IGNORE = 1 by regex
-    #[allow(unused)]
+
     fn should_ignore_plugin_regex(code: &str) -> bool {
         let regex = Regex::new(IGNORE_PATTERN).unwrap();
 
@@ -236,32 +235,6 @@ impl PluginManager {
             }
         }
         false
-    }
-
-    // Allow checking _SHOULD_IGNORE in real Python env, safer but slower
-    fn should_ignore_plugin_python_exec(code: &str) -> bool {
-        Python::with_gil(|py| {
-            // Set a temporary variable to detect _SHOULD_IGNORE
-            let check_code = format!("{}\ntry:\n    _result = _SHOULD_IGNORE == 1\nexcept NameError:\n    _result = False", code);
-            let check_code_cstr = CString::new(check_code).unwrap();
-
-            match py.run(check_code_cstr.as_c_str(), None, None) {
-                Ok(()) => {
-                    // Evaluate _result
-                    let eval_code = CString::new("_result").unwrap();
-                    match py.eval(eval_code.as_c_str(), None, None) {
-                        Ok(result) => {
-                            result.extract::<bool>().unwrap_or_else(|_| false)
-                        }
-                        Err(_) => false,
-                    }
-                }
-                Err(_) => {
-                    // Failed to detect, don't ignore
-                    false
-                }
-            }
-        })
     }
 
     pub fn plugin_count(&self) -> usize {
