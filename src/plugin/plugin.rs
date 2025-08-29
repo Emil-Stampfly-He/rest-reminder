@@ -1,7 +1,8 @@
 use std::ffi::CString;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyModule};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use chrono::Local;
 use walkdir::WalkDir;
 use colored::*;
@@ -18,6 +19,13 @@ pub struct PluginManager {
 struct PluginScript {
     name: String,
     module: Py<PyModule>,
+    path: PathBuf,
+    // If true, the plugin will always be executed in a subprocess. This is
+    // used for plugins that use GUI toolkits like tkinter which require the
+    // main thread on many platforms (Windows) and will raise
+    // "RuntimeError: main thread is not in main loop" if called from a
+    // background thread.
+    force_subprocess: bool,
 }
 
 impl PluginManager {
@@ -83,9 +91,19 @@ impl PluginManager {
                 CString::new(&*plugin_name).unwrap().as_c_str(),
             )?;
 
+            // Heuristic: if the plugin source imports or references tkinter,
+            // mark it to be run in a subprocess to avoid calling tkinter from
+            // a non-main thread which causes the runtime error on Windows.
+            let lower_code = code.to_lowercase();
+            let force_subprocess = lower_code.contains("import tkinter")
+                || lower_code.contains("from tkinter")
+                || lower_code.contains("tkinter.");
+
             let plugin_script = PluginScript {
                 name: plugin_name.clone(),
                 module: module.unbind(),
+                path: path.to_path_buf(),
+                force_subprocess,
             };
 
             if Self::should_ignore_plugin(&code) {
@@ -108,43 +126,91 @@ impl PluginManager {
                hook_name.bright_yellow(), 
                format!("for {} plugin(s)", self.activated_plugins.len()).bright_magenta());
 
-        Python::with_gil(|py| {
-            // Use of plugin context is optional
-            // Plugin context is a Python dict
-            let py_context = PyDict::new(py);
-            py_context.set_item("message", &context.message)?;
-            py_context.set_item("timestamp", &context.timestamp)?;
-            py_context.set_item("work_duration", context.work_duration)?;
+        // We'll call plugin hooks without blocking the caller:
+        // - If a plugin sets `_RUN_IN_SUBPROCESS = 1` (in its module), we spawn
+        //   an external Python process to run the hook (good for GUI toolkits like tkinter).
+        // - Otherwise, we invoke the hook in a detached thread which acquires the GIL,
+        //   so the current thread is not blocked by long-running plugin code.
+        for plugin in &self.activated_plugins {
+            let plugin_name = plugin.name.clone();
+            let plugin_path = plugin.path.clone();
+            let hook = hook_name.to_string();
+            let ctx = context.clone();
 
-            // Call hooks
-            for plugin in &self.activated_plugins {
-                let module = plugin.module.as_ref();
-                
-                // Examine if plugin has specified hooks
-                // (Reflectionally) call Python function
-                if let Ok(hook_func) = module.getattr(py, hook_name) {
-                    // py_context is the only param in every hook
-                    match hook_func.call(py, (py_context.clone(),), None) {
-                        Ok(_) => {
-                            println!("  {} {} {}", "✓".bright_green(), 
-                                   plugin.name.bright_cyan(), 
-                                   format!("executed {}", hook_name).white());
-                        }
-                        Err(e) => {
-                            println!("  {} {} {} - {}", "✗".bright_red(), 
-                                   plugin.name.bright_cyan(), 
-                                   format!("failed {}", hook_name).white(),
-                                   e.to_string().red());
+            // Check `_RUN_IN_SUBPROCESS` flag in the plugin module or the
+            // load-time heuristic `force_subprocess` (e.g., detects tkinter).
+            let run_in_subprocess = if plugin.force_subprocess {
+                true
+            } else {
+                Python::with_gil(|py| {
+                    let module = plugin.module.as_ref();
+                    match module.getattr(py, "_RUN_IN_SUBPROCESS") {
+                        Ok(val) => val.extract::<i32>(py).unwrap_or(0) == 1,
+                        Err(_) => false,
+                    }
+                })
+            };
+
+            if run_in_subprocess {
+                // Spawn an external python process to run the hook. This keeps GUI
+                // toolkits and blocking UI code in a separate process so they won't
+                // block the main application or other plugins.
+                let python_code = format!(
+                    "import runpy\nmod = runpy.run_path(r'{}')\nif '{}' in mod:\n    try:\n        mod['{}']({{}})\n    except Exception as e:\n        import sys, traceback; traceback.print_exc(file=sys.stderr)",
+                    plugin_path.display(), hook, hook
+                );
+
+                match Command::new("python").arg("-c").arg(python_code).spawn() {
+                    Ok(_child) => {
+                        println!("  {} {} {}", "✓".bright_green(),
+                                 plugin_name.bright_cyan(),
+                                 format!("spawned {} in subprocess", hook).white());
+                    }
+                    Err(e) => {
+                        println!("  {} {} {} - {}", "✗".bright_red(),
+                                 plugin_name.bright_cyan(),
+                                 format!("failed to spawn {}", hook).white(),
+                                 e.to_string().red());
+                    }
+                }
+                continue;
+            }
+
+            // Otherwise, run the hook in a detached thread that will acquire the GIL
+            // locally so we don't block the caller.
+            tokio::spawn(async move {
+                Python::with_gil(|py| {
+                    let py_context = PyDict::new(py);
+                    py_context.set_item("message", &ctx.message).unwrap();
+                    py_context.set_item("timestamp", &ctx.timestamp).unwrap();
+                    py_context.set_item("work_duration", ctx.work_duration).unwrap();
+
+                    if let Ok(module) = PyModule::import(py, &plugin_name) {
+                        if let Ok(hook_func) = module.getattr(hook.as_str()) {
+                            match hook_func.call((py_context.clone(),), None) {
+                                Ok(_) => {
+                                    println!("  {} {} {}", "✓".bright_green(),
+                                             plugin_name.bright_cyan(),
+                                             format!("executed {}", hook).white());
+                                }
+                                Err(e) => {
+                                    println!("  {} {} {} - {}", "✗".bright_red(),
+                                             plugin_name.bright_cyan(),
+                                             format!("failed {}", hook).white(),
+                                             e.to_string().red());
+                                }
+                            }
+                        } else {
+                            println!("  {} {} {}", "○".bright_black(),
+                                     plugin_name.bright_cyan(),
+                                     format!("no {} hook", hook).bright_black());
                         }
                     }
-                } else {
-                    println!("  {} {} {}", "○".bright_black(), 
-                           plugin.name.bright_cyan(), 
-                           format!("no {} hook", hook_name).bright_black());
-                }
-            }
-            Ok(())
-        })
+                });
+            });
+        }
+
+        Ok(())
     }
     
     // Check if plugins shouldn't be loaded when initializing
@@ -224,6 +290,7 @@ impl PluginManager {
     }
 }
 
+#[derive(Clone)]
 pub struct PluginContext {
     pub message: String,
     pub timestamp: String,
