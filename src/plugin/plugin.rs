@@ -237,7 +237,7 @@ impl PluginManager {
         false
     }
 
-    /// Allow checking _SHOULD_IGNORE in real Python env, safer but slower
+    // Allow checking _SHOULD_IGNORE in real Python env, safer but slower
     #[allow(unused)]
     fn should_ignore_plugin_python_exec(code: &str) -> bool {
         Python::with_gil(|py| {
