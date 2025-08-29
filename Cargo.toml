@@ -15,6 +15,7 @@ rustyline = "17.0.1"
 colored = "3.0.0"
 pyo3 = { version = "0.25.1", features = ["auto-initialize"] }
 walkdir = "2.4"
+regex = "1.11.2"
 
 # Windows specific dependencies
 [target.'cfg(windows)'.dependencies]

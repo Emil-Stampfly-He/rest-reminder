@@ -6,8 +6,9 @@ use chrono::Local;
 use walkdir::WalkDir;
 use colored::*;
 use pyo3::exceptions::PyIOError;
+use regex::Regex;
 
-const IGNORE_SIGN: &str = "_SHOULD_IGNORE = 1";
+const IGNORE_PATTERN: &str = r"^\s*_SHOULD_IGNORE\s*=\s*1\s*$";
 
 pub struct PluginManager {
     inactivated_plugins: Vec<PluginScript>,
@@ -87,7 +88,7 @@ impl PluginManager {
                 module: module.unbind(),
             };
 
-            if code.contains(IGNORE_SIGN) {
+            if Self::should_ignore_plugin(&code) {
                 self.inactivated_plugins.push(plugin_script);
             } else {
                 self.activated_plugins.push(plugin_script);
@@ -146,6 +147,57 @@ impl PluginManager {
         })
     }
     
+    // Check if plugins shouldn't be loaded when initializing
+    fn should_ignore_plugin(code: &str) -> bool {
+        Self::should_ignore_plugin_regex(code)
+        // Self::should_ignore_plugin_python_exec(code)
+    }
+
+    // Match _SHOULD_IGNORE = 1 by regex
+    fn should_ignore_plugin_regex(code: &str) -> bool {
+        let regex = Regex::new(IGNORE_PATTERN).unwrap();
+
+        for line in code.lines() {
+            let trimmed_line = line.trim();
+
+            if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+                continue;
+            }
+
+            if regex.is_match(trimmed_line) {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Allow checking _SHOULD_IGNORE in real Python env, safer but slower
+    #[allow(unused)]
+    fn should_ignore_plugin_python_exec(code: &str) -> bool {
+        Python::with_gil(|py| {
+            // Set a temporary variable to detect _SHOULD_IGNORE
+            let check_code = format!("{}\ntry:\n    _result = _SHOULD_IGNORE == 1\nexcept NameError:\n    _result = False", code);
+            let check_code_cstr = CString::new(check_code).unwrap();
+
+            match py.run(check_code_cstr.as_c_str(), None, None) {
+                Ok(()) => {
+                    // Evaluate _result
+                    let eval_code = CString::new("_result").unwrap();
+                    match py.eval(eval_code.as_c_str(), None, None) {
+                        Ok(result) => {
+                            result.extract::<bool>().unwrap_or_else(|_| false)
+                        }
+                        Err(_) => false,
+                    }
+                }
+                Err(_) => {
+                    // Failed to detect, don't ignore
+                    false
+                }
+            }
+        })
+    }
+
     pub fn plugin_count(&self) -> usize {
         self.inactivated_plugins.len() + self.activated_plugins.len()
     }

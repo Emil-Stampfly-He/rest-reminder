@@ -8,9 +8,9 @@ use rand::Rng;
 use sysinfo::{ProcessesToUpdate, System};
 use tokio::time::{Duration, interval};
 use colored::*;
-use crate::plugin::plugins::{PluginContext, PluginManager};
+use crate::plugin::plugin::{PluginContext, PluginManager};
 
-// Windows specific imports
+// Windows-specific imports
 #[cfg(windows)]
 use {
     windows::core::PCWSTR,
