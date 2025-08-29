@@ -1,6 +1,7 @@
 use colored::Colorize;
 use crate::cli::Command;
 use crate::core::core::run_rest_reminder;
+use crate::plugin::template::generate_plugin_template;
 use crate::statistic::plotter::plot;
 use crate::statistic::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
 
@@ -39,6 +40,10 @@ pub async fn execute_command(cmd: Command) {
             plot(log_location, plot_location, start_day, end_day)
                 .expect("Failed to plot your working trend.");
             println!("{}", "Plot generated successfully!".bright_green().bold());
+        }
+        Command::Gen { name } => {
+            println!("{}", "Generating plugin template...".bright_yellow().bold());
+            generate_plugin_template(name.as_str()).await;
         }
     }
 }

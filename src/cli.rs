@@ -150,7 +150,7 @@ pub enum Command {
             long,
             value_name = "APP",
             num_args = 1..,
-            default_values = &["idea64.exe", "rustrover64.exe"],
+            default_values = &["idea64.exe", "rustrover64.exe", "Code.exe"],
             help = "What software(s) to detect",
         )]
         app: Vec<String>,
@@ -161,7 +161,7 @@ pub enum Command {
             long,
             value_name = "APP",
             num_args = 1..,
-            default_values = &["IntelliJ IDEA", "RustRover", "Code", "Xcode"],
+            default_values = &["IntelliJ IDEA", "RustRover", "Cursor", "Xcode"],
             help = "What software(s) to detect",
         )]
         app: Vec<String>,
@@ -219,6 +219,19 @@ pub enum Command {
         )]
         end_day: DateTime<Local>,
     },
+
+    // Generating plugin template
+    #[command(name = "gen")]
+    Gen {
+        #[arg(
+            short,
+            long,
+            value_name = "FILENAME",
+            help = "Plugin name",
+            default_value = "plugin_template"
+        )]
+        name: String,
+    }
 }
 
 fn parse_datetime_local(s: &str) -> Result<DateTime<Local>, String> {

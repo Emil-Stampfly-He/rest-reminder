@@ -13,8 +13,9 @@ pub async fn run_interactive_mode() {
     println!("  {}  - {}", "count-single-day".yellow().bold(), "Count work time for a specific day".white());
     println!("  {}     - {}", "count-precise".yellow().bold(), "Count work time between precise timestamps".white());
     println!("  {}              - {}", "plot".yellow().bold(), "Generate work time trend plot".white());
+    println!("  {}               - {}", "gen".yellow().bold(), "(FOR DEV USE ONLY) Generate plugin template".white());
     println!("  {}              - {}", "help".yellow().bold(), "Show this help message".white());
-    println!("  {}              - {}", "exit".yellow().bold(), "Exit the program".white());
+    println!("  {}       - {}", "exit / quit".yellow().bold(), "Exit the program".white());
     println!("{}", "═══════════════════════════════════════════════".bright_cyan());
     println!("{}: {}", "Type a command and press Enter. Example", "rest -t 3600 -a Cursor -l ~/Desktop/focus_log.txt".green());
     println!();
@@ -129,14 +130,19 @@ fn show_help() {
     println!("{}", "VISUALIZATION:".bright_green().bold());
     println!("  {}", "plot [OPTIONS]".yellow().bold());
     println!("    {}   {}", "-l, --log-location <PATH>".blue(), "Log file path".white());
-    println!("    {} {}", "-p, --plot-location <PATH>".blue(), "Output plot file path".white());
+    println!("    {}  {}", "-p, --plot-location <PATH>".blue(), "Output plot file path".white());
     println!("    {}          {}", "-s, --start <DATE>".blue(), "Start date (YYYY-MM-DD)".white());
     println!("    {}            {}", "-e, --end <DATE>".blue(), "End date (YYYY-MM-DD)".white());
     println!("    {}: {}", "Example".bright_magenta(), "plot -s 2024-01-01 -e 2024-01-31 -p ~/work_trend.png".green());
     println!();
+
+    println!("{}", "TEMPLATE GENERATOR:".bright_green().bold());
+    println!("  {}", "gen [OPTIONS]".yellow().bold());
+    println!("    {}   {}", "-n, --name <FILENAME>".blue(), "Template file name".white());
+    println!();
     
     println!("{}", "SYSTEM:".bright_green().bold());
     println!("  {}                {}", "help, h".yellow().bold(), "Show this help message".white());
-    println!("  {}          {}", "exit, quit, q, ex".yellow().bold(), "Exit interactive mode".white());
+    println!("  {}      {}", "exit, quit, q, ex".yellow().bold(), "Exit interactive mode".white());
     println!();
 }
