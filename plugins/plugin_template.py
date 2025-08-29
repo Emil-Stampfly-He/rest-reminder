@@ -8,7 +8,7 @@ Set _RUN_IN_SUBPROCESS = 1 if you wish this plugin to be run in a subprocess
 _SHOULD_IGNORE = 0
 _RUN_IN_SUBPROCESS = 1
 
-#Uncomment any wanted hooks or delete any unwanted hooks.
+# Uncomment any wanted hooks or delete any unwanted hooks.
 
 # def on_init(context):
 #     pass
