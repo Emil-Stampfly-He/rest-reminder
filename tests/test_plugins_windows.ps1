@@ -1,12 +1,10 @@
-# PowerShell 脚本：rest-reminder.ps1
-
 Write-Output "Testing Python Plugin System for Rest Reminder"
 Write-Output "================================================="
 
 Write-Output ""
 Write-Output "Plugin directory contents:"
 Set-Location ..
-Get-ChildItem -Path .\plugins\ -Detailed
+Get-ChildItem -Path .\plugins\
 
 Write-Output ""
 Write-Output "Python plugins found:"
@@ -18,8 +16,5 @@ Write-Output "   (Will monitor for 'NonExistentApp' - should show plugin initial
 Write-Output "   Press Ctrl+C to stop after seeing the plugin output"
 Write-Output ""
 
-# 设置环境变量
-$env:PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
-
-# 运行 rest-reminder 程序
-& .\target\debug\rest-reminder rest -t 10 -a NonExistentApp
+# Run Rest Reminder
+& .\target\debug\rest-reminder.exe rest -t 10 -a NonExistentApp
