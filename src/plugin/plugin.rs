@@ -215,11 +215,12 @@ impl PluginManager {
     
     // Check if plugins shouldn't be loaded when initializing
     fn should_ignore_plugin(code: &str) -> bool {
-        Self::should_ignore_plugin_regex(code)
-        // Self::should_ignore_plugin_python_exec(code)
+        // Self::should_ignore_plugin_regex(code)
+        Self::should_ignore_plugin_python_exec(code)
     }
 
     // Match _SHOULD_IGNORE = 1 by regex
+    #[allow(unused)]
     fn should_ignore_plugin_regex(code: &str) -> bool {
         let regex = Regex::new(IGNORE_PATTERN).unwrap();
 
@@ -238,7 +239,6 @@ impl PluginManager {
     }
 
     // Allow checking _SHOULD_IGNORE in real Python env, safer but slower
-    #[allow(unused)]
     fn should_ignore_plugin_python_exec(code: &str) -> bool {
         Python::with_gil(|py| {
             // Set a temporary variable to detect _SHOULD_IGNORE
