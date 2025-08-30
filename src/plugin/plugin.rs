@@ -83,7 +83,7 @@ impl PluginManager {
         let code = std::fs::read_to_string(path)
             .map_err(|e| PyErr::new::<PyIOError, _>(format!("Failed to read file: {}", e)))?;
 
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let module = PyModule::from_code(
                 py,
                 CString::new(&*code).unwrap().as_c_str(),
@@ -142,7 +142,7 @@ impl PluginManager {
             let run_in_subprocess = if plugin.force_subprocess {
                 true
             } else {
-                Python::with_gil(|py| {
+                Python::attach(|py| {
                     let module = plugin.module.as_ref();
                     match module.getattr(py, "_RUN_IN_SUBPROCESS") {
                         Ok(val) => val.extract::<i32>(py).unwrap_or(0) == 1,
@@ -179,7 +179,7 @@ impl PluginManager {
             // Otherwise, run the hook in a detached thread that will acquire the GIL
             // locally so we don't block the caller.
             tokio::spawn(async move {
-                Python::with_gil(|py| {
+                Python::attach(|py| {
                     let py_context = PyDict::new(py);
                     py_context.set_item("message", &ctx.message).unwrap();
                     py_context.set_item("timestamp", &ctx.timestamp).unwrap();
