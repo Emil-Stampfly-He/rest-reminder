@@ -1,0 +1,94 @@
+/* Basic page layout */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, serif;
+	color: #222;
+	margin: 0;
+	padding: 20px;
+	background: #fff;
+}
+
+h1 {
+	text-align: center;
+	margin-bottom: 24px;
+	/* Use a distinct code-style font for the main title to differ from circle labels */
+	font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+	font-weight: 700;
+	font-size: 48px;
+}
+
+/* typing caret animation for main title */
+#main-title::after {
+	content: '';
+	display: inline-block;
+	width: 12px;
+	height: 1.1em;
+	margin-left: 8px;
+	background: #222;
+	vertical-align: middle;
+	animation: blink-caret 1s steps(1) infinite;
+}
+@keyframes blink-caret { 50% { opacity: 0 } }
+
+#orbit-container {
+	/* size is set from JS; set a soft background for contrast */
+	background: transparent;
+}
+
+.orbit-circle {
+	outline: none;
+}
+
+/* Animated gradient flow: uses a pseudo-element to show an animated background */
+.orbit-circle {
+	position: absolute; /* ensured by JS but set here as well */
+	overflow: hidden;
+}
+.orbit-circle::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background: var(--grad, linear-gradient(135deg, #feda75, #fa7e1e));
+	background-size: 300% 200%;
+	filter: saturate(1.05) contrast(1.02);
+	transform: translateZ(0);
+	transition: opacity 220ms;
+	animation: flow-background var(--flow-duration, 6s) linear infinite;
+}
+
+/* text label sits above the animated background */
+.orbit-circle > * { z-index: 2; }
+.orbit-circle { color: white; }
+
+.orbit-circle .label {
+	position: relative;
+	z-index: 2;
+	font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+	font-size: 28px;
+	font-weight: 600;
+	text-transform: capitalize;
+	text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+@keyframes flow-background {
+	0% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+	100% { background-position: 0% 50%; }
+}
+
+.orbit-circle:focus {
+	box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+	transform: scale(0.75);
+}
+
+/* responsive tweak: smaller radius on small screens */
+@media (max-width: 480px) {
+	#orbit-container {
+		margin: 20px auto;
+	}
+	.orbit-circle {
+		width: 60px !important;
+		height: 60px !important;
+	}
+}
+

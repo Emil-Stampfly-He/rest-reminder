@@ -231,7 +231,9 @@ pub enum Command {
             default_value = "plugin_template"
         )]
         name: String,
-    }
+    },
+    #[command(name = "web")]
+    Web {},
 }
 
 fn parse_datetime_local(s: &str) -> Result<DateTime<Local>, String> {

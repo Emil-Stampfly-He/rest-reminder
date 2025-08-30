@@ -20,12 +20,7 @@ struct PluginScript {
     name: String,
     module: Py<PyModule>,
     path: PathBuf,
-    // If true, the plugin will always be executed in a subprocess. This is
-    // used for plugins that use GUI toolkits like tkinter which require the
-    // main thread on many platforms (Windows) and will raise
-    // "RuntimeError: main thread is not in main loop" if called from a
-    // background thread.
-    force_subprocess: bool,
+    force_subprocess: bool, // Plugin will always be executed in a subprocess if true
 }
 
 impl PluginManager {
@@ -93,7 +88,7 @@ impl PluginManager {
 
             // Heuristic: if the plugin source imports or references tkinter,
             // mark it to be run in a subprocess to avoid calling tkinter from
-            // a non-main thread which causes the runtime error on Windows.
+            // a non-main thread which causes the runtime error on Windows
             let lower_code = code.to_lowercase();
             let force_subprocess = lower_code.contains("import tkinter")
                 || lower_code.contains("from tkinter")
@@ -126,11 +121,11 @@ impl PluginManager {
                hook_name.bright_yellow(), 
                format!("for {} plugin(s)", self.activated_plugins.len()).bright_magenta());
 
-        // We'll call plugin hooks without blocking the caller:
-        // - If a plugin sets `_RUN_IN_SUBPROCESS = 1` (in its module), we spawn
-        //   an external Python process to run the hook (good for GUI toolkits like tkinter).
-        // - Otherwise, we invoke the hook in a detached thread which acquires the GIL,
-        //   so the current thread is not blocked by long-running plugin code.
+        // Call plugin hooks without blocking the caller:
+        // - If a plugin sets `_RUN_IN_SUBPROCESS = 1` (in its module), spawn
+        //   an external Python process to run the hook
+        // - Otherwise, invoke the hook in a detached thread which acquires the GIL,
+        //   so the current thread is not blocked by long-running plugin code
         for plugin in &self.activated_plugins {
             let plugin_name = plugin.name.clone();
             let plugin_path = plugin.path.clone();
@@ -154,9 +149,15 @@ impl PluginManager {
             if run_in_subprocess {
                 // Spawn an external python process to run the hook. This keeps GUI
                 // toolkits and blocking UI code in a separate process so they won't
-                // block the main application or other plugins.
+                // block the main application or other plugins
                 let python_code = format!(
-                    "import runpy\nmod = runpy.run_path(r'{}')\nif '{}' in mod:\n    try:\n        mod['{}']({{}})\n    except Exception as e:\n        import sys, traceback; traceback.print_exc(file=sys.stderr)",
+                    "import runpy\n\
+                    mod = runpy.run_path(r'{}')\n\
+                    if '{}' in mod:\n    \
+                        try:\n        \
+                            mod['{}']({{}})\n    \
+                        except Exception as e:\n        \
+                            import sys, traceback; traceback.print_exc(file=sys.stderr)",
                     plugin_path.display(), hook, hook
                 );
 
@@ -177,7 +178,7 @@ impl PluginManager {
             }
 
             // Otherwise, run the hook in a detached thread that will acquire the GIL
-            // locally so we don't block the caller.
+            // locally so we don't block the caller
             tokio::spawn(async move {
                 Python::attach(|py| {
                     let py_context = PyDict::new(py);
@@ -219,7 +220,6 @@ impl PluginManager {
     }
 
     // Match _SHOULD_IGNORE = 1 by regex
-
     fn should_ignore_plugin_regex(code: &str) -> bool {
         let regex = Regex::new(IGNORE_PATTERN).unwrap();
 

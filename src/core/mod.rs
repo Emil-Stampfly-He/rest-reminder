@@ -4,6 +4,7 @@ use crate::core::core::run_rest_reminder;
 use crate::plugin::template::generate_plugin_template;
 use crate::statistic::plotter::plot;
 use crate::statistic::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
+use crate::web::web::spawn_web_server;
 
 pub mod core;
 pub mod interactive;
@@ -44,6 +45,11 @@ pub async fn execute_command(cmd: Command) {
         Command::Gen { name } => {
             println!("{}", "Generating plugin template...".bright_yellow().bold());
             generate_plugin_template(name.as_str()).await;
+        }
+        Command::Web {} => {
+            println!("{}", "Starting web server...".bright_yellow().bold());
+            spawn_web_server().await;
+            println!("{} {}", "Web server started:".bright_green().bold(), "http://localhost:60606".white().bold());
         }
     }
 }

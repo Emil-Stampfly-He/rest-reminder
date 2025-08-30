@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head >
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rest Reminder</title>
+    <link rel="icon" href="/assets/icon.ico">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Main title uses a code-style font and is animated by frontend/js/app.js -->
+    <h1 id="main-title" data-text="Welcome to Rest Reminder!"></h1>
+
+    <!-- Orbit container: three circular buttons will be placed here and
+         controlled by frontend/js/app.js -->
+    <div id="orbit-container" aria-live="polite">
+        <div class="orbit-circle" id="circle-1" data-href="rest" tabindex="0" role="button" aria-label="Rest"></div>
+        <div class="orbit-circle" id="circle-2" data-href="count" tabindex="0" role="button" aria-label="Statistics"></div>
+        <div class="orbit-circle" id="circle-3" data-href="plot" tabindex="0" role="button" aria-label="Other"></div>
+    </div>
+
+</body>
+    <!-- Application script: keeps JS inside frontend/js as requested -->
+    <script src="js/app.js" defer></script>
+</html>
