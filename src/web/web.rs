@@ -9,9 +9,12 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
         actix_web::rt::System::new().block_on(async move {
             HttpServer::new(|| {
                 App::new()
+                    // register API routes first so they take precedence over static files
+                    .service(rest)
+                    .service(count)
+                    .service(plot)
+                    // static file server as a fallback for frontend assets
                     .service(Files::new("/", "./frontend").index_file("index.html"))
-                    .service(hello)
-                    .service(echo)
             })
                 .bind(("127.0.0.1", 60606))?
                 .run()
@@ -20,12 +23,17 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
     })
 }
 
-#[get("/")]
-async fn hello() -> impl Responder {
+#[get("/rest")]
+async fn rest() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
+#[post("/count")]
+async fn count(req_body: String) -> impl Responder {
+    HttpResponse::Ok().body(req_body)
+}
+
+#[post("/plot")]
+async fn plot(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
 }

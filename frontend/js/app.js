@@ -188,4 +188,32 @@
     // start after a short delay so rest of page paints
     setTimeout(step, 250);
   })();
+
+  // Theme toggle: toggles data-theme on root and persists choice to localStorage
+  (function themeToggle() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+
+    const ROOT = document.documentElement;
+    const STORAGE_KEY = 'rest-reminder-theme';
+
+    function applyTheme(theme) {
+      ROOT.setAttribute('data-theme', theme);
+      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      // update icon
+      btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // load stored or prefer dark if user prefers
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(stored || (prefersDark ? 'dark' : 'light'));
+
+    btn.addEventListener('click', () => {
+      const current = ROOT.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem(STORAGE_KEY, next);
+    });
+  })();
 })();

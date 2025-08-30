@@ -7,6 +7,22 @@ body {
 	background: #fff;
 }
 
+/* Dark theme variants. Only background and main title color change; circles remain the same. */
+:root[data-theme='dark'] {
+	--page-bg: #0f1115;
+	--page-text: #eee;
+	--caret-color: #fff;
+}
+:root[data-theme='light'] {
+	--page-bg: #ffffff;
+	--page-text: #222222;
+	--caret-color: #222;
+}
+body {
+	background: var(--page-bg, #fff);
+	color: var(--page-text, #222);
+}
+
 h1 {
 	text-align: center;
 	margin-bottom: 24px;
@@ -23,7 +39,7 @@ h1 {
 	width: 12px;
 	height: 1.1em;
 	margin-left: 8px;
-	background: #222;
+	background: var(--caret-color, #222);
 	vertical-align: middle;
 	animation: blink-caret 1s steps(1) infinite;
 }
@@ -69,6 +85,29 @@ h1 {
 	text-transform: capitalize;
 	text-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
+
+/* Theme toggle button in top-right */
+#theme-toggle {
+	position: fixed;
+	top: 12px;
+	right: 12px;
+	width: 44px;
+	height: 44px;
+	border-radius: 8px;
+	border: none;
+	background: rgba(0,0,0,0.06);
+	cursor: pointer;
+	font-size: 18px;
+}
+
+#theme-toggle:focus { outline: 2px solid rgba(0,0,0,0.12); }
+
+/* In dark mode, make the button lighter and title white */
+:root[data-theme='dark'] #theme-toggle {
+	background: rgba(255,255,255,0.06);
+	color: #fff;
+}
+:root[data-theme='dark'] #main-title { color: #fff; }
 
 @keyframes flow-background {
 	0% { background-position: 0% 50%; }

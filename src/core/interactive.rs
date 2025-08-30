@@ -14,6 +14,7 @@ pub async fn run_interactive_mode() {
     println!("  {}     - {}", "count-precise".yellow().bold(), "Count work time between precise timestamps".white());
     println!("  {}              - {}", "plot".yellow().bold(), "Generate work time trend plot".white());
     println!("  {}               - {}", "gen".yellow().bold(), "(FOR DEV USE ONLY) Generate plugin template".white());
+    println!("  {}               - {}", "web".yellow().bold(), "Start web mode".white());
     println!("  {}              - {}", "help".yellow().bold(), "Show this help message".white());
     println!("  {}       - {}", "exit / quit".yellow().bold(), "Exit the program".white());
     println!("{}", "═══════════════════════════════════════════════".bright_cyan());
@@ -139,6 +140,10 @@ fn show_help() {
     println!("{}", "TEMPLATE GENERATOR:".bright_green().bold());
     println!("  {}", "gen [OPTIONS]".yellow().bold());
     println!("    {}   {}", "-n, --name <FILENAME>".blue(), "Template file name".white());
+    println!();
+
+    println!("{}", "WEB MODE STARTER:".bright_green().bold());
+    println!("  {}", "web".yellow().bold());
     println!();
     
     println!("{}", "SYSTEM:".bright_green().bold());
