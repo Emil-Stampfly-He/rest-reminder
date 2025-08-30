@@ -1,12 +1,12 @@
 use actix_files::Files;
-use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, rt, App, HttpResponse, HttpServer, Responder};
 use std::thread;
 
 // Start the actix-web server on a dedicated OS thread
 pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
     thread::spawn(|| {
         // Create and run an Actix runtime on this thread.
-        actix_web::rt::System::new().block_on(async move {
+        rt::System::new().block_on(async move {
             HttpServer::new(|| {
                 App::new()
                     // register API routes first so they take precedence over static files
