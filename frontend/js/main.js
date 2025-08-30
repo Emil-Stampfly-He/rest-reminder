@@ -29,10 +29,26 @@ function setupCircles() {
       }
     });
 
-    el.addEventListener('mouseenter', () => orbit.pause());
-    el.addEventListener('mouseleave', () => orbit.resume());
-    el.addEventListener('focus', () => orbit.pause());
-    el.addEventListener('blur', () => orbit.resume());
+    el.addEventListener('mouseenter', () => {
+      orbit.pause();
+      el.style.transform = `scale(${CONFIG.shrinkFactor})`;
+      el.style.boxShadow = '0 12px 30px rgba(0,0,0,0.25)';
+    });
+    el.addEventListener('mouseleave', () => {
+      orbit.resume();
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+    });
+    el.addEventListener('focus', () => {
+      orbit.pause();
+      el.style.transform = `scale(${CONFIG.shrinkFactor})`;
+      el.style.boxShadow = '0 12px 30px rgba(0,0,0,0.25)';
+    });
+    el.addEventListener('blur', () => {
+      orbit.resume();
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+    });
     el.addEventListener('click', () => window.location.href = el.getAttribute('data-href'));
   });
 }
