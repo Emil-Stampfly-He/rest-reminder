@@ -1,6 +1,6 @@
 use crate::web::count::count;
-use crate::web::plot::plot;
 use crate::web::rest::rest;
+use crate::web::plot::plot_work_trend;
 use actix_files::Files;
 use actix_web::{rt, App, HttpServer};
 use std::thread;
@@ -15,7 +15,7 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
                     // Register API routes first so they take precedence over static files
                     .service(rest)
                     .service(count)
-                    .service(plot)
+                    .service(plot_work_trend)
                     // Static file server as a fallback for frontend assets
                     .service(Files::new("/", "./frontend").index_file("index.html"))
             })

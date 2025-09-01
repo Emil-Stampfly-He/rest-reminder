@@ -236,7 +236,7 @@ pub enum Command {
     Web {},
 }
 
-fn parse_datetime_local(s: &str) -> Result<DateTime<Local>, String> {
+pub fn parse_datetime_local(s: &str) -> Result<DateTime<Local>, String> {
     // To NaiveDateTime
     let naive = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
         .map_err(|e| format!("Failed to resolve: {}", e))?;
@@ -249,7 +249,7 @@ fn parse_datetime_local(s: &str) -> Result<DateTime<Local>, String> {
     }
 }
 
-fn parse_datetime_local_day(s: &str) -> Result<DateTime<Local>, String> {
+pub fn parse_datetime_local_day(s: &str) -> Result<DateTime<Local>, String> {
     // To NaiveDate
     let naive_date = NaiveDate::parse_from_str(s, "%Y-%m-%d")
         .map_err(|e| format!("Cannot resolve '{}': {}", s, e))?;
