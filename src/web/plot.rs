@@ -1,7 +1,9 @@
 use crate::cli::parse_datetime_local_day;
 use crate::statistic::plotter::plot;
 use actix_web::{HttpResponse, Responder, post, web};
+use base64::{Engine as _, engine::general_purpose};
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -15,6 +17,7 @@ struct PlotRequest {
 #[derive(Serialize)]
 struct PlotResponse {
     plot_location: String,
+    image_data_url: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -51,9 +54,19 @@ async fn plot_work_trend(req_body: web::Json<PlotRequest>) -> impl Responder {
     }
 
     match plot(log_path, plot_location.clone(), start_time, end_time) {
-        Ok(_) => HttpResponse::Ok().json(PlotResponse {
-            plot_location: plot_location.to_string_lossy().to_string(),
-        }),
+        Ok(_) => {
+            let image_data_url = fs::read(&plot_location).ok().map(|bytes| {
+                format!(
+                    "data:image/png;base64,{}",
+                    general_purpose::STANDARD.encode(bytes)
+                )
+            });
+
+            HttpResponse::Ok().json(PlotResponse {
+                plot_location: plot_location.to_string_lossy().to_string(),
+                image_data_url,
+            })
+        }
         Err(_) => HttpResponse::BadRequest().json(ErrorResponse {
             error: "Failed to plot work trend".to_string(),
         }),

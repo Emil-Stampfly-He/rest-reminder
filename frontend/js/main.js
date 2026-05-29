@@ -1,5 +1,6 @@
 const THEME_STORAGE_KEY = 'rest-reminder-theme';
 const LANGUAGE_STORAGE_KEY = 'rest-reminder-language';
+const CONFIG_STORAGE_KEY = 'rest-reminder-config';
 const DEFAULT_LANGUAGE = 'en';
 
 const translations = {
@@ -29,6 +30,15 @@ const translations = {
     noAppsSelected: 'Select at least one app to monitor.',
     removeApp: 'Remove',
     startMonitoring: 'Start monitoring',
+    stopMonitoring: 'Stop monitoring',
+    monitorStatus: 'Monitor status',
+    monitorRunning: 'Running',
+    monitorStopped: 'Stopped',
+    monitorElapsed: 'Elapsed',
+    monitoringApps: 'Monitoring apps',
+    noneValue: 'None',
+    alreadyRunning: 'Monitoring is already running.',
+    stoppedMonitoring: 'Monitoring stopped.',
     countTitle: 'Calculate work time',
     countDescription: 'Read focus_log.txt and calculate total work seconds by date range, single day, or precise time range.',
     statisticsMode: 'Statistics mode',
@@ -51,6 +61,12 @@ const translations = {
     plotLocationPlaceholder: 'Example: ~/Desktop/plot.png',
     browse: 'Browse',
     generateChart: 'Generate chart',
+    logPreviewTitle: 'Recent log entries',
+    refreshPreview: 'Refresh preview',
+    logPreviewEmpty: 'Select a log file to preview recent entries.',
+    logPreviewNoEntries: 'No log entries found.',
+    plotPreviewTitle: 'Chart preview',
+    plotPreviewAlt: 'Work trend chart preview',
     submitting: 'Submitting...',
     openingPicker: 'Opening picker...',
     pathSelected: 'Path selected.',
@@ -87,6 +103,15 @@ const translations = {
     noAppsSelected: '请至少选择一个需要监控的应用。',
     removeApp: '移除',
     startMonitoring: '启动监控',
+    stopMonitoring: '停止监控',
+    monitorStatus: '监控状态',
+    monitorRunning: '运行中',
+    monitorStopped: '已停止',
+    monitorElapsed: '已运行',
+    monitoringApps: '监控应用',
+    noneValue: '无',
+    alreadyRunning: '监控已经在运行。',
+    stoppedMonitoring: '监控已停止。',
     countTitle: '统计工作时长',
     countDescription: '读取 focus_log.txt，按日期范围、单日或精确时间段计算累计工作秒数。',
     statisticsMode: '统计方式',
@@ -109,6 +134,12 @@ const translations = {
     plotLocationPlaceholder: '例如 ~/Desktop/plot.png',
     browse: '浏览',
     generateChart: '生成图表',
+    logPreviewTitle: '最近日志',
+    refreshPreview: '刷新预览',
+    logPreviewEmpty: '选择日志文件后可预览最近记录。',
+    logPreviewNoEntries: '没有找到日志记录。',
+    plotPreviewTitle: '图表预览',
+    plotPreviewAlt: '工作趋势图预览',
     submitting: '正在提交...',
     openingPicker: '正在打开选择器...',
     pathSelected: '路径已选择。',
@@ -145,6 +176,15 @@ const translations = {
     noAppsSelected: '請至少選擇一個需要監控的應用程式。',
     removeApp: '移除',
     startMonitoring: '啟動監控',
+    stopMonitoring: '停止監控',
+    monitorStatus: '監控狀態',
+    monitorRunning: '執行中',
+    monitorStopped: '已停止',
+    monitorElapsed: '已執行',
+    monitoringApps: '監控應用程式',
+    noneValue: '無',
+    alreadyRunning: '監控已經在執行。',
+    stoppedMonitoring: '監控已停止。',
     countTitle: '統計工作時長',
     countDescription: '讀取 focus_log.txt，依日期範圍、單日或精確時間區間計算累計工作秒數。',
     statisticsMode: '統計方式',
@@ -167,6 +207,12 @@ const translations = {
     plotLocationPlaceholder: '例如 ~/Desktop/plot.png',
     browse: '瀏覽',
     generateChart: '產生圖表',
+    logPreviewTitle: '最近日誌',
+    refreshPreview: '重新整理預覽',
+    logPreviewEmpty: '選擇日誌檔案後可預覽最近記錄。',
+    logPreviewNoEntries: '找不到日誌記錄。',
+    plotPreviewTitle: '圖表預覽',
+    plotPreviewAlt: '工作趨勢圖預覽',
     submitting: '正在提交...',
     openingPicker: '正在開啟選擇器...',
     pathSelected: '路徑已選擇。',
@@ -203,6 +249,15 @@ const translations = {
     noAppsSelected: '監視するアプリを少なくとも1つ選択してください。',
     removeApp: '削除',
     startMonitoring: '監視を開始',
+    stopMonitoring: '監視を停止',
+    monitorStatus: '監視状態',
+    monitorRunning: '実行中',
+    monitorStopped: '停止中',
+    monitorElapsed: '経過時間',
+    monitoringApps: '監視中のアプリ',
+    noneValue: 'なし',
+    alreadyRunning: '監視はすでに実行中です。',
+    stoppedMonitoring: '監視を停止しました。',
     countTitle: '作業時間を計算',
     countDescription: 'focus_log.txt を読み込み、日付範囲、単日、または正確な時間範囲で合計作業秒数を計算します。',
     statisticsMode: '統計モード',
@@ -225,6 +280,12 @@ const translations = {
     plotLocationPlaceholder: '例: ~/Desktop/plot.png',
     browse: '参照',
     generateChart: 'グラフを作成',
+    logPreviewTitle: '最近のログ',
+    refreshPreview: 'プレビューを更新',
+    logPreviewEmpty: 'ログファイルを選択すると最近の記録をプレビューできます。',
+    logPreviewNoEntries: 'ログ記録が見つかりません。',
+    plotPreviewTitle: 'グラフプレビュー',
+    plotPreviewAlt: '作業トレンドグラフのプレビュー',
     submitting: '送信中...',
     openingPicker: '選択画面を開いています...',
     pathSelected: 'パスを選択しました。',
@@ -261,6 +322,15 @@ const translations = {
     noAppsSelected: 'Sélectionnez au moins une application à suivre.',
     removeApp: 'Supprimer',
     startMonitoring: 'Démarrer le suivi',
+    stopMonitoring: 'Arrêter le suivi',
+    monitorStatus: 'État du suivi',
+    monitorRunning: 'En cours',
+    monitorStopped: 'Arrêté',
+    monitorElapsed: 'Écoulé',
+    monitoringApps: 'Applications suivies',
+    noneValue: 'Aucun',
+    alreadyRunning: 'Le suivi est déjà en cours.',
+    stoppedMonitoring: 'Le suivi est arrêté.',
     countTitle: 'Calculer le temps de travail',
     countDescription: 'Lit focus_log.txt et calcule le total en secondes par période, journée unique ou plage horaire précise.',
     statisticsMode: 'Mode statistique',
@@ -283,6 +353,12 @@ const translations = {
     plotLocationPlaceholder: 'Exemple : ~/Desktop/plot.png',
     browse: 'Parcourir',
     generateChart: 'Créer le graphique',
+    logPreviewTitle: 'Entrées récentes',
+    refreshPreview: 'Actualiser l’aperçu',
+    logPreviewEmpty: 'Sélectionnez un journal pour afficher les entrées récentes.',
+    logPreviewNoEntries: 'Aucune entrée trouvée.',
+    plotPreviewTitle: 'Aperçu du graphique',
+    plotPreviewAlt: 'Aperçu du graphique de tendance',
     submitting: 'Envoi...',
     openingPicker: 'Ouverture du sélecteur...',
     pathSelected: 'Chemin sélectionné.',
@@ -296,6 +372,7 @@ const translations = {
 };
 
 let currentLanguage = DEFAULT_LANGUAGE;
+let configReady = false;
 
 const t = (key) => translations[currentLanguage]?.[key] ?? translations[DEFAULT_LANGUAGE][key] ?? key;
 
@@ -369,6 +446,10 @@ const translatePage = (language) => {
     element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel));
   });
 
+  document.querySelectorAll('[data-i18n-alt]').forEach((element) => {
+    element.setAttribute('alt', t(element.dataset.i18nAlt));
+  });
+
   const languageSelect = document.getElementById('language-select');
   if (languageSelect) {
     languageSelect.value = currentLanguage;
@@ -405,6 +486,56 @@ const readForm = (form) => {
 
   return data;
 };
+
+function readStoredConfig() {
+  try {
+    return JSON.parse(localStorage.getItem(CONFIG_STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveConfig() {
+  const config = {
+    rest: {
+      logPath: document.querySelector('#rest-panel input[name="log_path"]')?.value || '',
+      time: document.querySelector('#rest-panel input[name="time"]')?.value || '3600',
+      apps: processState.selected,
+    },
+    count: {
+      logPath: document.querySelector('#count-panel input[name="log_path"]')?.value || '',
+    },
+    plot: {
+      logPath: document.querySelector('#plot-panel input[name="log_path"]')?.value || '',
+      plotLocation: document.querySelector('#plot-panel input[name="plot_location"]')?.value || '',
+    },
+  };
+
+  localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+}
+
+function restoreConfig() {
+  const config = readStoredConfig();
+
+  const restLog = document.querySelector('#rest-panel input[name="log_path"]');
+  const restTime = document.querySelector('#rest-panel input[name="time"]');
+  const countLogs = document.querySelectorAll('#count-panel input[name="log_path"]');
+  const plotLog = document.querySelector('#plot-panel input[name="log_path"]');
+  const plotLocation = document.querySelector('#plot-panel input[name="plot_location"]');
+
+  if (restLog && config.rest?.logPath) restLog.value = config.rest.logPath;
+  if (restTime && config.rest?.time) restTime.value = config.rest.time;
+  if (Array.isArray(config.rest?.apps)) {
+    processState.selected = [...config.rest.apps];
+    renderSelectedProcesses();
+  }
+  countLogs.forEach((input) => {
+    if (config.count?.logPath) input.value = config.count.logPath;
+  });
+  if (plotLog && config.plot?.logPath) plotLog.value = config.plot.logPath;
+  if (plotLocation && config.plot?.plotLocation) plotLocation.value = config.plot.plotLocation;
+  configReady = true;
+}
 
 const resultMessage = (kind, payload) => {
   if (kind.startsWith('count')) {
@@ -448,6 +579,15 @@ async function submitForm(form) {
       throw new Error(payload.error || payload.message || `${t('requestFailed')}: ${response.status}`);
     }
 
+    if (kind === 'plot' && payload.image_data_url) {
+      showPlotPreview(payload.image_data_url);
+    }
+
+    saveConfig();
+    if (kind === 'rest') {
+      await refreshMonitorStatus();
+    }
+
     setStatus(form, resultMessage(kind, payload), 'success');
   } catch (error) {
     setStatus(form, error.message || t('requestFailed'), 'error');
@@ -465,6 +605,57 @@ function setProcessPickerMessage(message) {
   item.className = 'process-message';
   item.textContent = message;
   container.appendChild(item);
+}
+
+function renderMonitorStatus(status) {
+  const state = document.querySelector('[data-monitor-state]');
+  const elapsed = document.querySelector('[data-monitor-elapsed]');
+  const apps = document.querySelector('[data-monitor-apps]');
+  const stopButton = document.querySelector('[data-stop-monitor]');
+
+  if (state) {
+    state.textContent = status.running ? t('monitorRunning') : t('monitorStopped');
+  }
+  if (elapsed) {
+    elapsed.textContent = status.elapsed_seconds ? formatSeconds(status.elapsed_seconds) : '0s';
+  }
+  if (apps) {
+    apps.textContent = status.app_list?.length ? status.app_list.join(', ') : t('noneValue');
+  }
+  if (stopButton) {
+    stopButton.disabled = !status.running;
+  }
+}
+
+async function refreshMonitorStatus() {
+  try {
+    const response = await fetch('/rest/status');
+    const text = await response.text();
+    const status = text ? JSON.parse(text) : { running: false, app_list: [] };
+    renderMonitorStatus(status);
+  } catch {
+    renderMonitorStatus({ running: false, app_list: [] });
+  }
+}
+
+async function stopMonitoring() {
+  const form = document.querySelector('#rest-panel form');
+  const button = document.querySelector('[data-stop-monitor]');
+  if (!form || !button) return;
+
+  button.disabled = true;
+  setStatus(form, t('submitting'));
+
+  try {
+    const response = await fetch('/rest/stop', { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`${t('requestFailed')}: ${response.status}`);
+    }
+    setStatus(form, t('stoppedMonitoring'), 'success');
+    await refreshMonitorStatus();
+  } catch (error) {
+    setStatus(form, error.message || t('requestFailed'), 'error');
+  }
 }
 
 function syncSelectedProcesses() {
@@ -486,6 +677,7 @@ function renderSelectedProcesses() {
     empty.textContent = t('selectedAppsEmpty');
     container.appendChild(empty);
     syncSelectedProcesses();
+    if (configReady) saveConfig();
     return;
   }
 
@@ -511,6 +703,7 @@ function renderSelectedProcesses() {
   });
 
   syncSelectedProcesses();
+  if (configReady) saveConfig();
 }
 
 function processRank(name, query) {
@@ -590,6 +783,73 @@ async function loadProcesses() {
   }
 }
 
+function getActiveCountLogPath() {
+  const activeForm = document.querySelector('#count-panel .count-form.is-active');
+  return activeForm?.querySelector('input[name="log_path"]')?.value
+    || document.querySelector('#count-panel input[name="log_path"]')?.value
+    || '';
+}
+
+function renderLogPreview(entries) {
+  const list = document.querySelector('[data-log-preview-list]');
+  if (!list) return;
+
+  list.innerHTML = '';
+  if (!entries.length) {
+    const item = document.createElement('li');
+    item.textContent = t('logPreviewNoEntries');
+    list.appendChild(item);
+    return;
+  }
+
+  entries.forEach((entry) => {
+    const item = document.createElement('li');
+    item.textContent = entry;
+    list.appendChild(item);
+  });
+}
+
+async function refreshLogPreview() {
+  const logPath = getActiveCountLogPath();
+  const button = document.querySelector('[data-log-preview]');
+
+  if (!logPath) {
+    renderLogPreview([t('logPreviewEmpty')]);
+    return;
+  }
+
+  if (button) button.disabled = true;
+
+  try {
+    const response = await fetch('/log-preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ log_path: logPath, limit: 8 }),
+    });
+    const text = await response.text();
+    const payload = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(payload.error || `${t('requestFailed')}: ${response.status}`);
+    }
+
+    renderLogPreview(payload.entries || []);
+  } catch (error) {
+    renderLogPreview([error.message || t('requestFailed')]);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function showPlotPreview(dataUrl) {
+  const preview = document.querySelector('[data-plot-preview]');
+  const image = document.querySelector('[data-plot-preview-image]');
+  if (!preview || !image) return;
+
+  image.src = dataUrl;
+  preview.hidden = false;
+}
+
 async function openPathPicker(button) {
   const endpoint = pickerEndpoints[button.dataset.picker];
   const control = button.closest('.path-control');
@@ -622,6 +882,7 @@ async function openPathPicker(button) {
 
     input.value = payload.path;
     input.dispatchEvent(new Event('input', { bubbles: true }));
+    saveConfig();
     setStatus(form, t('pathSelected'), 'success');
   } catch (error) {
     setStatus(form, error.message || t('requestFailed'), 'error');
@@ -694,6 +955,10 @@ function initForms() {
       submitForm(form);
     });
   });
+
+  document.querySelectorAll('input').forEach((input) => {
+    input.addEventListener('change', saveConfig);
+  });
 }
 
 function initPathPickers() {
@@ -741,10 +1006,23 @@ function initProcessPicker() {
   });
 }
 
+function initMonitorControls() {
+  document.querySelector('[data-stop-monitor]')?.addEventListener('click', stopMonitoring);
+  refreshMonitorStatus();
+  window.setInterval(refreshMonitorStatus, 5000);
+}
+
+function initPreviews() {
+  document.querySelector('[data-log-preview]')?.addEventListener('click', refreshLogPreview);
+}
+
 initTabs();
 initCountModes();
 initTheme();
 initLanguage();
+restoreConfig();
 initPathPickers();
 initProcessPicker();
+initMonitorControls();
+initPreviews();
 initForms();

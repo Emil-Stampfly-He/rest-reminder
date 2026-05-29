@@ -2244,6 +2244,7 @@ version = "2.0.0"
 dependencies = [
  "actix-files",
  "actix-web",
+ "base64",
  "chrono",
  "clap",
  "colored",

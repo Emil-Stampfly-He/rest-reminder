@@ -407,6 +407,36 @@ input:focus {
     opacity: 0.7;
 }
 
+.secondary-action {
+    min-height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 14px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.actions .secondary-action {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.secondary-action:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+}
+
+.actions .secondary-action:hover {
+    background: var(--surface);
+}
+
+.secondary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .status {
     min-height: 24px;
     color: var(--muted);
@@ -419,6 +449,72 @@ input:focus {
 
 .status.is-error {
     color: var(--danger);
+}
+
+.info-panel,
+.preview-panel {
+    margin-top: 20px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+}
+
+.info-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.info-label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.info-panel strong,
+.info-panel p {
+    margin: 4px 0 0;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.preview-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.log-preview {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.log-preview li {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+    background: var(--surface-muted);
+    color: var(--text);
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.plot-preview img {
+    width: 100%;
+    max-height: 520px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    object-fit: contain;
+    background: #fff;
 }
 
 @media (max-width: 760px) {
@@ -468,5 +564,14 @@ input:focus {
 
     .process-search-row {
         grid-template-columns: 1fr;
+    }
+
+    .info-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-header {
+        align-items: stretch;
+        flex-direction: column;
     }
 }

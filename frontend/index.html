@@ -69,9 +69,24 @@
                 </label>
                 <div class="actions full-width">
                     <button type="submit" data-i18n="startMonitoring">Start monitoring</button>
+                    <button class="secondary-action" type="button" data-stop-monitor data-i18n="stopMonitoring">Stop monitoring</button>
                     <output class="status" aria-live="polite"></output>
                 </div>
             </form>
+            <div class="info-panel monitor-status" data-monitor-status>
+                <div>
+                    <span class="info-label" data-i18n="monitorStatus">Monitor status</span>
+                    <strong data-monitor-state data-i18n="monitorStopped">Stopped</strong>
+                </div>
+                <div>
+                    <span class="info-label" data-i18n="monitorElapsed">Elapsed</span>
+                    <strong data-monitor-elapsed>0s</strong>
+                </div>
+                <div class="full-width">
+                    <span class="info-label" data-i18n="monitoringApps">Monitoring apps</span>
+                    <p data-monitor-apps data-i18n="noneValue">None</p>
+                </div>
+            </div>
         </section>
 
         <section class="panel" id="count-panel" aria-labelledby="count-title">
@@ -146,6 +161,15 @@
                     <output class="status" aria-live="polite"></output>
                 </div>
             </form>
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h3 data-i18n="logPreviewTitle">Recent log entries</h3>
+                    <button class="secondary-action" type="button" data-log-preview data-i18n="refreshPreview">Refresh preview</button>
+                </div>
+                <ul class="log-preview" data-log-preview-list>
+                    <li data-i18n="logPreviewEmpty">Select a log file to preview recent entries.</li>
+                </ul>
+            </div>
         </section>
 
         <section class="panel" id="plot-panel" aria-labelledby="plot-title">
@@ -181,6 +205,12 @@
                     <output class="status" aria-live="polite"></output>
                 </div>
             </form>
+            <div class="preview-panel plot-preview" data-plot-preview hidden>
+                <div class="preview-header">
+                    <h3 data-i18n="plotPreviewTitle">Chart preview</h3>
+                </div>
+                <img data-plot-preview-image alt="Work trend chart preview" data-i18n-alt="plotPreviewAlt">
+            </div>
         </section>
     </main>
 

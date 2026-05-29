@@ -23,6 +23,9 @@ Rest Reminder 是一个基于 Rust 的桌面工具，用于监控专注工作状
 - Web UI 支持英文、简体中文、繁体中文、日语、法语。
 - Web UI 支持原生文件/目录选择器，选择日志目录、日志文件和图表保存位置。
 - Web UI 支持当前运行进程下拉选择，不需要用户手动查询进程名。
+- Web UI 显示当前监控状态、已运行时间，并支持停止监控。
+- Web UI 会保存日志路径、提醒间隔和已选择的监控应用，下次打开自动恢复。
+- Web UI 支持最近日志预览和生成图表后的页面内预览。
 - 支持 Python 插件，在程序初始化、工作开始、休息提醒时执行自定义逻辑。
 
 ## 截图
@@ -75,6 +78,11 @@ Web UI 包含三个主要功能区：
 - “监控应用”输入框会读取当前正在运行的进程。
 - 点击下拉列表中的进程即可添加监控项。
 - 如果目标应用还没有启动，也可以手动输入进程名后按 Enter 添加。
+- 页面会显示监控是否正在运行、已运行多久、正在监控哪些应用。
+- 可以直接在 Web UI 中停止当前监控。
+- 重新打开页面时，会自动恢复上次的日志路径、提醒间隔和监控应用。
+- 统计前可以预览最近日志记录。
+- 生成趋势图后，可以直接在页面里预览 PNG 图片。
 
 ## 交互模式
 
@@ -189,10 +197,13 @@ cargo run -- plot -l ~/Desktop/focus_log.txt -p ~/Desktop/plot.png -s 2025-04-16
 本地 Web 服务注册了以下接口：
 
 - `POST /rest`
+- `POST /rest/stop`
+- `GET /rest/status`
 - `POST /count`
 - `POST /count-single-day`
 - `POST /count-precise`
 - `POST /plot`
+- `POST /log-preview`
 - `GET /processes`
 - `GET /dialog/directory`
 - `GET /dialog/file`

@@ -23,6 +23,9 @@ The project now includes both a command-line workflow and a local web UI.
 - Web UI supports English, Simplified Chinese, Traditional Chinese, Japanese, and French.
 - Native file/folder pickers in the web UI for log directory, log file, and chart output path.
 - Running-process selector in the web UI, so users can search and pick process names instead of looking them up manually.
+- Monitor status panel with elapsed time and a stop button.
+- Saved web UI preferences for log paths, reminder interval, and monitored apps.
+- Recent log preview and generated chart preview in the browser.
 - Python plugin hooks for custom automation on app initialization, work start, and break reminder.
 
 ## Screenshots
@@ -75,6 +78,11 @@ The web UI includes three panels:
 - Use the monitored-app search box to search currently running processes.
 - Click a process from the dropdown to add it.
 - If an app is not currently running, type its process name and press Enter to add it manually.
+- See whether monitoring is currently running, how long it has been running, and which apps are being watched.
+- Stop the current monitor from the web UI.
+- Reopen the page with your previous log paths, interval, and monitored apps restored automatically.
+- Preview recent log entries before running statistics.
+- Preview the generated PNG chart directly in the browser after plotting.
 
 ## Interactive Mode
 
@@ -189,10 +197,13 @@ cargo run -- plot -l ~/Desktop/focus_log.txt -p ~/Desktop/plot.png -s 2025-04-16
 The local web server registers these endpoints:
 
 - `POST /rest`
+- `POST /rest/stop`
+- `GET /rest/status`
 - `POST /count`
 - `POST /count-single-day`
 - `POST /count-precise`
 - `POST /plot`
+- `POST /log-preview`
 - `GET /processes`
 - `GET /dialog/directory`
 - `GET /dialog/file`
