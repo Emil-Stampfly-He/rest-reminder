@@ -3,28 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Rest Reminder</title>
     <link rel="icon" href="/assets/icon.ico">
     <link rel="stylesheet" href="css/styles.css">
 </head>
-
 <body>
-    <!-- Main title uses a code-style font and is animated by frontend/js/app.js -->
-    <h1 id="main-title" data-text="Welcome to Rest Reminder!"></h1>
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">Rest Reminder</p>
+            <h1 data-i18n="appTitle">Focus monitoring and work statistics</h1>
+        </div>
+        <div class="header-actions">
+            <label class="language-select">
+                <span data-i18n="languageLabel">Language</span>
+                <select id="language-select" aria-label="Language">
+                    <option value="en">English</option>
+                    <option value="zh-Hans">简体中文</option>
+                    <option value="zh-Hant">繁體中文</option>
+                    <option value="ja">日本語</option>
+                    <option value="fr">Français</option>
+                </select>
+            </label>
+            <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false" data-i18n-aria-label="themeToggle">
+                <span aria-hidden="true">◐</span>
+            </button>
+        </div>
+    </header>
 
-    <!-- Theme toggle placed top-right: toggles dark / light background. -->
-    <button id="theme-toggle" aria-pressed="false" aria-label="Toggle dark mode">🌙</button>
+    <main class="app-shell">
+        <nav class="tabs" aria-label="Feature navigation" data-i18n-aria-label="featureNavigation">
+            <button class="tab is-active" type="button" data-panel="rest-panel" data-i18n="tabRest">Start monitoring</button>
+            <button class="tab" type="button" data-panel="count-panel" data-i18n="tabCount">Work statistics</button>
+            <button class="tab" type="button" data-panel="plot-panel" data-i18n="tabPlot">Generate chart</button>
+        </nav>
 
-    <!-- Orbit container: three circular buttons will be placed here and
-         controlled by frontend/js/app.js -->
-    <div id="orbit-container" aria-live="polite">
-        <div class="orbit-circle" id="circle-1" data-href="rest" tabindex="0" role="button" aria-label="Rest"></div>
-        <div class="orbit-circle" id="circle-2" data-href="count" tabindex="0" role="button" aria-label="Statistics"></div>
-        <div class="orbit-circle" id="circle-3" data-href="plot" tabindex="0" role="button" aria-label="Other"></div>
-    </div>
+        <section class="panel is-active" id="rest-panel" aria-labelledby="rest-title">
+            <div class="panel-header">
+                <h2 id="rest-title" data-i18n="restTitle">Start rest reminders</h2>
+                <p data-i18n="restDescription">Detect selected apps, show a rest reminder after the work threshold, and write sessions to the log.</p>
+            </div>
+            <form class="form-grid" data-endpoint="/rest" data-kind="rest">
+                <label>
+                    <span data-i18n="logDirectory">Log directory</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop or D:\" data-i18n-placeholder="logDirectoryPlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="directory" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="reminderInterval">Reminder interval (seconds)</span>
+                    <input name="time" type="number" min="1" step="1" value="3600" required>
+                </label>
+                <label class="full-width">
+                    <span data-i18n="monitoredApps">Monitored apps</span>
+                    <div class="process-picker" data-process-picker>
+                        <div class="process-search-row">
+                            <input class="process-search" type="search" placeholder="Search running processes or type an app name" data-i18n-placeholder="processSearchPlaceholder" autocomplete="off">
+                            <button class="path-picker" type="button" data-refresh-processes data-i18n="refreshProcesses">Refresh</button>
+                        </div>
+                        <div class="process-suggestions" data-process-suggestions role="listbox"></div>
+                        <div class="selected-processes" data-selected-processes aria-live="polite"></div>
+                        <input name="app_list" type="hidden" data-process-value>
+                    </div>
+                    <span class="hint" data-i18n="appsHint">Search the running process list, or type a name and press Enter to add it manually.</span>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="startMonitoring">Start monitoring</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+        </section>
 
+        <section class="panel" id="count-panel" aria-labelledby="count-title">
+            <div class="panel-header">
+                <h2 id="count-title" data-i18n="countTitle">Calculate work time</h2>
+                <p data-i18n="countDescription">Read focus_log.txt and calculate total work seconds by date range, single day, or precise time range.</p>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Statistics mode" data-i18n-aria-label="statisticsMode">
+                <button class="mode is-active" type="button" data-count-mode="range" data-i18n="modeRange">Date range</button>
+                <button class="mode" type="button" data-count-mode="single" data-i18n="modeSingle">Single day</button>
+                <button class="mode" type="button" data-count-mode="precise" data-i18n="modePrecise">Precise time</button>
+            </div>
+
+            <form class="form-grid count-form is-active" data-endpoint="/count" data-kind="count-range" data-count-form="range">
+                <label class="full-width">
+                    <span data-i18n="logFile">Log file</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop/focus_log.txt" data-i18n-placeholder="logFilePlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="startDate">Start date</span>
+                    <input name="start_time" type="date" required>
+                </label>
+                <label>
+                    <span data-i18n="endDate">End date</span>
+                    <input name="end_time" type="date" required>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="calculateRange">Calculate range</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+
+            <form class="form-grid count-form" data-endpoint="/count-single-day" data-kind="count-single" data-count-form="single">
+                <label class="full-width">
+                    <span data-i18n="logFile">Log file</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop/focus_log.txt" data-i18n-placeholder="logFilePlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="date">Date</span>
+                    <input name="date" type="date" required>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="calculateSingle">Calculate day</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+
+            <form class="form-grid count-form" data-endpoint="/count-precise" data-kind="count-precise" data-count-form="precise">
+                <label class="full-width">
+                    <span data-i18n="logFile">Log file</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop/focus_log.txt" data-i18n-placeholder="logFilePlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="startTime">Start time</span>
+                    <input name="start_time" type="datetime-local" step="1" required>
+                </label>
+                <label>
+                    <span data-i18n="endTime">End time</span>
+                    <input name="end_time" type="datetime-local" step="1" required>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="calculatePrecise">Calculate precise range</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel" id="plot-panel" aria-labelledby="plot-title">
+            <div class="panel-header">
+                <h2 id="plot-title" data-i18n="plotTitle">Generate work trend chart</h2>
+                <p data-i18n="plotDescription">Generate a work trend image for the selected date range from the log file.</p>
+            </div>
+            <form class="form-grid" data-endpoint="/plot" data-kind="plot">
+                <label class="full-width">
+                    <span data-i18n="logFile">Log file</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop/focus_log.txt" data-i18n-placeholder="logFilePlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label class="full-width">
+                    <span data-i18n="plotLocation">Chart save location</span>
+                    <div class="path-control">
+                        <input name="plot_location" type="text" placeholder="Example: ~/Desktop/plot.png" data-i18n-placeholder="plotLocationPlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="save-file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="startDate">Start date</span>
+                    <input name="start_date" type="date" required>
+                </label>
+                <label>
+                    <span data-i18n="endDate">End date</span>
+                    <input name="end_date" type="date" required>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="generateChart">Generate chart</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
 </body>
-    <!-- Application script modules -->
-    <script type="module" src="js/main.js" defer></script>
 </html>
