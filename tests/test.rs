@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod test_first {
-    use std::path::PathBuf;
     use chrono::{DateTime, Local, LocalResult, NaiveDateTime, TimeZone};
-    use rest_reminder::statistic::statistics::{acc_work_time, acc_work_time_precise, single_day_work_time};
+    use rest_reminder::statistic::statistics::{
+        acc_work_time, acc_work_time_precise, single_day_work_time,
+    };
+    use std::path::PathBuf;
 
     const TEST_FOCUS_LOG_PATH: &str = "tests/test_focus_log.txt";
-    
+
     #[test]
     fn test_zero_duration() {
         let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
@@ -91,7 +93,7 @@ mod test_first {
     fn test_acc_work_time_panic_on_invalid_range() {
         let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-20");
-        let end   = local_date("2025-04-19");
+        let end = local_date("2025-04-19");
         let _ = acc_work_time(path, start, end);
     }
 
@@ -108,7 +110,7 @@ mod test_first {
     fn test_acc_work_time_span_19_to_23() {
         let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-19");
-        let end   = local_date("2025-04-23");
+        let end = local_date("2025-04-23");
         assert_eq!(acc_work_time(path, start, end).unwrap(), 129_745);
     }
 
@@ -116,9 +118,41 @@ mod test_first {
     fn test_acc_work_time_span_with_empty_days() {
         let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
         let start = local_date("2025-04-18"); // no entries on 4/18
-        let end   = local_date("2025-04-20");
+        let end = local_date("2025-04-20");
         // Equivalent to 4/19 (117s) + 4/20 (8063s) = 8180s
         assert_eq!(acc_work_time(path, start, end).unwrap(), 8_180);
+    }
+
+    #[test]
+    fn test_acc_work_time_precise_handles_cross_day_window_without_overlap() {
+        let path = PathBuf::from(TEST_FOCUS_LOG_PATH);
+        let start = local_dt("2025-04-21 23:59:50");
+        let end = local_dt("2025-04-22 00:00:10");
+        assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 0);
+    }
+
+    #[test]
+    fn test_missing_log_file_returns_error() {
+        let path = PathBuf::from("tests/does_not_exist_focus_log.txt");
+        let start = local_dt("2025-04-19 22:00:00");
+        let end = local_dt("2025-04-19 23:00:00");
+
+        assert!(acc_work_time_precise(path.clone(), start, end).is_err());
+        assert!(single_day_work_time(path.clone(), local_date("2025-04-19")).is_err());
+        assert!(acc_work_time(path, local_date("2025-04-19"), local_date("2025-04-20")).is_err());
+    }
+
+    #[test]
+    fn test_log_lines_without_entry_prefix_are_ignored() {
+        let path = write_temp_log(&[
+            "not a focus log entry",
+            "[2025-04-19 10:00:00 ~ 2025-04-19 10:05:00] You worked for 5.00 minutes",
+            "another ignored line",
+        ]);
+        let start = local_dt("2025-04-19 09:00:00");
+        let end = local_dt("2025-04-19 11:00:00");
+
+        assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 300);
     }
 
     fn local_date(date_str: &str) -> DateTime<Local> {
@@ -134,8 +168,19 @@ mod test_first {
     fn local_dt(s: &str) -> DateTime<Local> {
         let naive = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
             .expect("Format should be %Y-%m-%d %H:%M:%S");
-        Local.from_local_datetime(&naive)
+        Local
+            .from_local_datetime(&naive)
             .single()
             .expect("Should be a valid date")
+    }
+
+    fn write_temp_log(lines: &[&str]) -> PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "rest_reminder_test_{}_{}.txt",
+            std::process::id(),
+            Local::now().timestamp_nanos_opt().unwrap()
+        ));
+        std::fs::write(&path, lines.join("\n")).expect("test log should be writable");
+        path
     }
 }

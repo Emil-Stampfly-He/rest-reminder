@@ -148,3 +148,103 @@ async fn rest_status() -> impl Responder {
     clear_finished_session(&mut current_session);
     HttpResponse::Ok().json(monitor_status_from(current_session.as_ref()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{App, http::StatusCode, test};
+    use std::sync::LazyLock;
+    use tokio::sync::Mutex as AsyncMutex;
+
+    static TEST_LOCK: LazyLock<AsyncMutex<()>> = LazyLock::new(|| AsyncMutex::new(()));
+
+    fn reset_monitor_session() {
+        let mut current_session = MONITOR_SESSION
+            .lock()
+            .expect("monitor session lock should not be poisoned");
+        if let Some(session) = current_session.take() {
+            session.handle.abort();
+        }
+    }
+
+    fn body_to_string(body: actix_web::web::Bytes) -> String {
+        String::from_utf8(body.to_vec()).expect("response body should be utf-8")
+    }
+
+    #[actix_web::test]
+    async fn status_reports_stopped_when_no_monitor_is_running() {
+        let _guard = TEST_LOCK.lock().await;
+        reset_monitor_session();
+
+        let app = test::init_service(App::new().service(rest_status)).await;
+        let req = test::TestRequest::get().uri("/rest/status").to_request();
+        let response = test::call_service(&app, req).await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = body_to_string(test::read_body(response).await);
+        assert!(body.contains(r#""running":false"#));
+        assert!(body.contains(r#""app_list":[]"#));
+    }
+
+    #[actix_web::test]
+    async fn stop_is_idempotent_when_no_monitor_is_running() {
+        let _guard = TEST_LOCK.lock().await;
+        reset_monitor_session();
+
+        let app = test::init_service(App::new().service(stop_rest)).await;
+        let req = test::TestRequest::post().uri("/rest/stop").to_request();
+        let response = test::call_service(&app, req).await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = body_to_string(test::read_body(response).await);
+        assert!(body.contains(r#""status":"stopped"#));
+    }
+
+    #[actix_web::test]
+    async fn starting_monitor_sets_status_and_rejects_duplicate_start() {
+        let _guard = TEST_LOCK.lock().await;
+        reset_monitor_session();
+
+        let app = test::init_service(
+            App::new()
+                .service(rest)
+                .service(rest_status)
+                .service(stop_rest),
+        )
+        .await;
+        let request = RestRequest {
+            log_path: std::env::temp_dir()
+                .join("rest_reminder_route_test")
+                .to_string_lossy()
+                .to_string(),
+            time: 3600,
+            app_list: vec!["rest-reminder-test-process-that-should-not-exist".to_string()],
+        };
+
+        let start_req = test::TestRequest::post()
+            .uri("/rest")
+            .set_json(&request)
+            .to_request();
+        let start_response = test::call_service(&app, start_req).await;
+        assert_eq!(start_response.status(), StatusCode::OK);
+
+        let status_req = test::TestRequest::get().uri("/rest/status").to_request();
+        let status_response = test::call_service(&app, status_req).await;
+        assert_eq!(status_response.status(), StatusCode::OK);
+        let status_body = body_to_string(test::read_body(status_response).await);
+        assert!(status_body.contains(r#""running":true"#));
+        assert!(status_body.contains("rest-reminder-test-process-that-should-not-exist"));
+
+        let duplicate_req = test::TestRequest::post()
+            .uri("/rest")
+            .set_json(&request)
+            .to_request();
+        let duplicate_response = test::call_service(&app, duplicate_req).await;
+        assert_eq!(duplicate_response.status(), StatusCode::CONFLICT);
+
+        let stop_req = test::TestRequest::post().uri("/rest/stop").to_request();
+        let stop_response = test::call_service(&app, stop_req).await;
+        assert_eq!(stop_response.status(), StatusCode::OK);
+        reset_monitor_session();
+    }
+}
