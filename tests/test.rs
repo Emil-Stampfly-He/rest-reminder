@@ -2,7 +2,9 @@
 mod test_first {
     use chrono::{DateTime, Local, LocalResult, NaiveDateTime, TimeZone};
     use rest_reminder::statistic::statistics::{
-        acc_work_time, acc_work_time_precise, single_day_work_time,
+        UNLABELED_TASK, acc_work_time, acc_work_time_for_task, acc_work_time_precise,
+        acc_work_time_precise_for_task, single_day_work_time, single_day_work_time_for_task,
+        task_work_time_summary,
     };
     use std::path::PathBuf;
 
@@ -155,6 +157,66 @@ mod test_first {
         assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 300);
     }
 
+    #[test]
+    fn test_structured_json_log_entries_are_counted() {
+        let path = write_temp_log(&[
+            &json_log("2025-04-19 10:00:00", "2025-04-19 10:05:00", "coding"),
+            &json_log("2025-04-19 10:10:00", "2025-04-19 10:15:00", "review"),
+        ]);
+        let start = local_dt("2025-04-19 09:00:00");
+        let end = local_dt("2025-04-19 11:00:00");
+
+        assert_eq!(acc_work_time_precise(path, start, end).unwrap(), 600);
+    }
+
+    #[test]
+    fn test_task_filter_only_counts_matching_structured_entries() {
+        let path = write_temp_log(&[
+            &json_log("2025-04-19 10:00:00", "2025-04-19 10:05:00", "coding"),
+            &json_log("2025-04-19 10:10:00", "2025-04-19 10:15:00", "review"),
+            "[2025-04-19 10:20:00 ~ 2025-04-19 10:25:00] You worked for 5.00 minutes",
+        ]);
+        let start = local_dt("2025-04-19 09:00:00");
+        let end = local_dt("2025-04-19 11:00:00");
+        let day = local_date("2025-04-19");
+
+        assert_eq!(
+            acc_work_time_precise_for_task(path.clone(), start, end, Some("coding")).unwrap(),
+            300
+        );
+        assert_eq!(
+            single_day_work_time_for_task(path.clone(), day, Some("review")).unwrap(),
+            300
+        );
+        assert_eq!(
+            acc_work_time_for_task(path, day, day, Some("missing")).unwrap(),
+            0
+        );
+    }
+
+    #[test]
+    fn test_task_summary_groups_labeled_and_legacy_entries() {
+        let path = write_temp_log(&[
+            &json_log("2025-04-19 10:00:00", "2025-04-19 10:05:00", "coding"),
+            &json_log("2025-04-19 10:10:00", "2025-04-19 10:15:00", "review"),
+            &json_log("2025-04-19 10:20:00", "2025-04-19 10:23:00", "coding"),
+            "[2025-04-19 10:30:00 ~ 2025-04-19 10:32:00] You worked for 2.00 minutes",
+        ]);
+
+        let summary =
+            task_work_time_summary(path, local_date("2025-04-19"), local_date("2025-04-19"))
+                .unwrap();
+
+        assert_eq!(summary.len(), 3);
+        assert_eq!(summary[0].task, "Unlabeled");
+        assert_eq!(summary[0].seconds, 120);
+        assert_eq!(summary[1].task, "coding");
+        assert_eq!(summary[1].seconds, 480);
+        assert_eq!(summary[2].task, "review");
+        assert_eq!(summary[2].seconds, 300);
+        assert_eq!(UNLABELED_TASK, "Unlabeled");
+    }
+
     fn local_date(date_str: &str) -> DateTime<Local> {
         let datetime_str = format!("{} 00:00:00", date_str);
         let naive = NaiveDateTime::parse_from_str(&datetime_str, "%Y-%m-%d %H:%M:%S")
@@ -182,5 +244,18 @@ mod test_first {
         ));
         std::fs::write(&path, lines.join("\n")).expect("test log should be writable");
         path
+    }
+
+    fn json_log(start: &str, end: &str, task: &str) -> String {
+        let start = local_dt(start);
+        let end = local_dt(end);
+        serde_json::json!({
+            "start": start,
+            "end": end,
+            "duration_seconds": (end - start).num_seconds(),
+            "apps": ["Cursor"],
+            "task": task,
+        })
+        .to_string()
     }
 }

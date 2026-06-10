@@ -1,4 +1,4 @@
-use crate::web::count::{count, count_precise, count_single_day};
+use crate::web::count::{count, count_by_task, count_precise, count_single_day};
 use crate::web::dialog::{pick_directory, pick_file, pick_save_file};
 use crate::web::log::log_preview;
 use crate::web::plot::plot_work_trend;
@@ -20,6 +20,7 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
                     .service(stop_rest)
                     .service(rest_status)
                     .service(count)
+                    .service(count_by_task)
                     .service(count_single_day)
                     .service(count_precise)
                     .service(plot_work_trend)

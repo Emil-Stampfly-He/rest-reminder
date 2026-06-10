@@ -9,6 +9,7 @@ use sysinfo::{ProcessesToUpdate, System};
 use tokio::time::{Duration, interval};
 use colored::*;
 use crate::plugin::plugin::{PluginContext, PluginManager};
+use crate::statistic::log_entry::LogEntry;
 
 // Windows-specific imports
 #[cfg(windows)]
@@ -26,7 +27,7 @@ enum WorkSessionResult {
     ProcessEnded,
 }
 
-pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>) {
+pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>, task: Option<String>) {
     let mut sys = System::new_all();
     let mut process_check_interval = interval(Duration::from_secs(1));
     let mut msg_undiscovered_display_interval = interval(Duration::from_secs(2));
@@ -68,7 +69,7 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
                     .any(|process|
                         app.iter()
                             .any(|software|
-                                process.name().to_str().unwrap().contains(software)));
+                                process.name().to_string_lossy().contains(software)));
                 
                 // Reset intervals when state changes
                 if found != last_found_state {
@@ -92,7 +93,7 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
                     let work_session_result = monitor_work_session(&mut sys, &app, time, start_time).await;
                     match work_session_result {
                         WorkSessionResult::CtrlCPressed => {
-                            log(start, Local::now(), &mut log_location);
+                            log(start, Local::now(), &mut log_location, &app, task.as_deref());
                             println!("{}", "Stopped monitoring".bright_yellow().bold());
                             return;
                         }
@@ -106,10 +107,10 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
                             }
                             
                             pop_up(time).await;
-                            log(start, Local::now(), &mut log_location);
+                            log(start, Local::now(), &mut log_location, &app, task.as_deref());
                         }
                         WorkSessionResult::ProcessEnded => {
-                            log(start, Local::now(), &mut log_location);
+                            log(start, Local::now(), &mut log_location, &app, task.as_deref());
                             println!("{}", "Process(es) ended, you finally decide to rest...".bright_blue().bold());
                             last_found_state = false;
                         }
@@ -147,7 +148,7 @@ async fn monitor_work_session(
                     .any(|process|
                         app.iter()
                             .any(|software|
-                                process.name().to_str().unwrap().contains(software)));
+                                process.name().to_string_lossy().contains(software)));
                 
                 if !still_running {
                     return WorkSessionResult::ProcessEnded;
@@ -223,27 +224,36 @@ async fn show_popup_macos(message: &str) {
         .await;
 }
 
-fn log(start: DateTime<Local>, end: DateTime<Local>, log_location: &mut PathBuf) {
+fn log(
+    start: DateTime<Local>,
+    end: DateTime<Local>,
+    log_location: &mut PathBuf,
+    apps: &[String],
+    task: Option<&str>,
+) {
     let mut path = log_location.to_path_buf();
     if path.is_dir() || log_location.to_string_lossy().ends_with(std::path::MAIN_SEPARATOR) {
-        path.push("../../focus_log.txt");
+        path.push("focus_log.txt");
     }
 
     let duration = end - start;
-    let log_line = format!(
-        "[{} ~ {}] You worked for {:.2} minutes \n",
-        start.format("%Y-%m-%d %H:%M:%S"),
-        end.format("%Y-%m-%d %H:%M:%S"),
-        duration.num_seconds() as f64 / 60.0
-    );
+    let entry = LogEntry::new(start, end, apps.to_vec(), task.map(str::to_string));
+    let log_line = entry.to_json_line().unwrap_or_else(|_| {
+        format!(
+            "[{} ~ {}] You worked for {:.2} minutes",
+            start.format("%Y-%m-%d %H:%M:%S"),
+            end.format("%Y-%m-%d %H:%M:%S"),
+            duration.num_seconds() as f64 / 60.0
+        )
+    });
 
 
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open(path)
+        .open(&path)
         .expect("Cannot open log file!");
 
-    file.write_all(log_line.as_bytes()).expect("Cannot write log file!");
-    println!("{} {}", "Logging to".bright_green().bold(), log_location.to_string_lossy());
+    writeln!(file, "{log_line}").expect("Cannot write log file!");
+    println!("{} {}", "Logging to".bright_green().bold(), path.to_string_lossy());
 }

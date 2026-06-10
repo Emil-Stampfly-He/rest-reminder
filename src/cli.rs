@@ -1,7 +1,7 @@
-use clap::builder::ValueParser;
-use std::path::PathBuf;
 use chrono::{DateTime, Local, LocalResult, NaiveDate, NaiveDateTime, TimeZone};
+use clap::builder::ValueParser;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 // Platform-specific default paths
 #[cfg(windows)]
@@ -13,7 +13,7 @@ const DEFAULT_LOG_DIR: &str = r"D:\\";
 
 #[cfg(target_os = "macos")]
 const DEFAULT_LOG_PATH: &str = "~/Desktop/focus_log.txt";
-#[cfg(target_os = "macos")]  
+#[cfg(target_os = "macos")]
 const DEFAULT_PLOT_PATH: &str = "~/Desktop/plot.png";
 #[cfg(target_os = "macos")]
 const DEFAULT_LOG_DIR: &str = "~/Desktop";
@@ -30,7 +30,7 @@ const DEFAULT_LOG_DIR: &str = "./";
     name = "Rest Reminder",
     author = "Emil Stampfly He",
     version = "2.0.0",
-    about = "Detects if you're working too long and reminds you to rest.",
+    about = "Detects if you're working too long and reminds you to rest."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -39,7 +39,6 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    
     // Statistics
     #[command(name = "count-precise")]
     CountPrecise {
@@ -69,6 +68,13 @@ pub enum Command {
             value_parser = parse_datetime_local,
         )]
         end: DateTime<Local>,
+
+        #[arg(
+            long,
+            value_name = "TASK",
+            help = "Only count sessions with this task label"
+        )]
+        task: Option<String>,
     },
 
     #[command(name = "count")]
@@ -99,6 +105,13 @@ pub enum Command {
             value_parser = parse_datetime_local_day,
         )]
         end_day: DateTime<Local>,
+
+        #[arg(
+            long,
+            value_name = "TASK",
+            help = "Only count sessions with this task label"
+        )]
+        task: Option<String>,
     },
 
     #[command(name = "count-single-day")]
@@ -120,6 +133,43 @@ pub enum Command {
             value_parser = parse_datetime_local_day,
         )]
         day: DateTime<Local>,
+
+        #[arg(
+            long,
+            value_name = "TASK",
+            help = "Only count sessions with this task label"
+        )]
+        task: Option<String>,
+    },
+
+    #[command(name = "count-by-task")]
+    CountByTask {
+        #[arg(
+            short,
+            long,
+            value_name = "LOG_PATH",
+            default_value = DEFAULT_LOG_PATH,
+            value_parser = ValueParser::path_buf()
+        )]
+        log_location: PathBuf,
+
+        #[arg(
+            short,
+            long,
+            value_name = "START",
+            help = "Format: YYYY-MM-DD",
+            value_parser = parse_datetime_local_day,
+        )]
+        start_day: DateTime<Local>,
+
+        #[arg(
+            short,
+            long,
+            value_name = "END",
+            help = "Format: YYYY-MM-DD",
+            value_parser = parse_datetime_local_day,
+        )]
+        end_day: DateTime<Local>,
     },
 
     // Rest reminder
@@ -140,7 +190,7 @@ pub enum Command {
             long,
             value_name = "TIME",
             default_value_t = 3600,
-            help = "How many seconds to work non stop before reminding",
+            help = "How many seconds to work non stop before reminding"
         )]
         time: u64,
 
@@ -176,8 +226,15 @@ pub enum Command {
             help = "What software(s) to detect",
         )]
         app: Vec<String>,
+
+        #[arg(
+            long,
+            value_name = "TASK",
+            help = "Task label to store with new work sessions"
+        )]
+        task: Option<String>,
     },
-    
+
     // Plotting
     #[command(name = "plot")]
     Plot {
@@ -200,7 +257,7 @@ pub enum Command {
             help = "Where to save the log file",
         )]
         plot_location: PathBuf,
-        
+
         #[arg(
             short,
             long,
@@ -260,7 +317,7 @@ pub fn parse_datetime_local_day(s: &str) -> Result<DateTime<Local>, String> {
 
     // Map to local timezone
     match Local.from_local_datetime(&naive_dt) {
-        LocalResult::Single(dt)    => Ok(dt),
+        LocalResult::Single(dt) => Ok(dt),
         LocalResult::Ambiguous(dt, _) => Ok(dt),
         LocalResult::None => Err(format!("Date is invalid in local timezone '{}'", s)),
     }

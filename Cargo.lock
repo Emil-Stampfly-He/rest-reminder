@@ -650,6 +650,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-link 0.1.3",
 ]
@@ -2255,6 +2256,7 @@ dependencies = [
  "rfd",
  "rustyline",
  "serde",
+ "serde_json",
  "sysinfo",
  "tokio",
  "walkdir",

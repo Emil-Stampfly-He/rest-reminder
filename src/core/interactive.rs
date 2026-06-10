@@ -12,6 +12,7 @@ pub async fn run_interactive_mode() {
     println!("  {}             - {}", "count".yellow().bold(), "Count work time between two days".white());
     println!("  {}  - {}", "count-single-day".yellow().bold(), "Count work time for a specific day".white());
     println!("  {}     - {}", "count-precise".yellow().bold(), "Count work time between precise timestamps".white());
+    println!("  {}      - {}", "count-by-task".yellow().bold(), "Summarize work time grouped by task label".white());
     println!("  {}              - {}", "plot".yellow().bold(), "Generate work time trend plot".white());
     println!("  {}               - {}", "gen".yellow().bold(), "(FOR DEV USE ONLY) Generate plugin template".white());
     println!("  {}               - {}", "web".yellow().bold(), "Start web mode".white());
@@ -104,6 +105,7 @@ fn show_help() {
     println!("    {}     {}", "-l, --log-to <PATH>".blue(), "Log file location".white());
     println!("    {}    {}", "-t, --time <SECONDS>".blue(), "Work time before reminder (default: 3600)".white());
     println!("    {}      {}", "-a, --app <APP>...".blue(), "Applications to monitor".white());
+    println!("    {}        {}", "--task <TASK>".blue(), "Task label stored with new sessions".white());
     println!("    {}: {}", "Example".bright_magenta(), "rest -t 1800 -a Cursor Code".green());
     println!();
     
@@ -112,12 +114,14 @@ fn show_help() {
     println!("    {}  {}", "-l, --log-location <PATH>".blue(), "Log file path".white());
     println!("    {}         {}", "-s, --start <DATE>".blue(), "Start date (YYYY-MM-DD)".white());
     println!("    {}           {}", "-e, --end <DATE>".blue(), "End date (YYYY-MM-DD)".white());
+    println!("    {}        {}", "--task <TASK>".blue(), "Only count sessions with this task label".white());
     println!("    {}: {}", "Example".bright_magenta(), "count -s 2024-01-01 -e 2024-01-31".green());
     println!();
     
     println!("  {}", "count-single-day [OPTIONS]".yellow().bold());
     println!("    {}  {}", "-l, --log-location <PATH>".blue(), "Log file path".white());
     println!("    {}           {}", "-d, --day <DATE>".blue(), "Date (YYYY-MM-DD)".white());
+    println!("    {}        {}", "--task <TASK>".blue(), "Only count sessions with this task label".white());
     println!("    {}: {}", "Example".bright_magenta(), "count-single-day -d 2024-01-15".green());
     println!();
     
@@ -125,7 +129,15 @@ fn show_help() {
     println!("    {}  {}", "-l, --log-location <PATH>".blue(), "Log file path".white());
     println!("    {}     {}", "-s, --start <DATETIME>".blue(), "Start time (YYYY-MM-DD HH:MM:SS)".white());
     println!("    {}       {}", "-e, --end <DATETIME>".blue(), "End time (YYYY-MM-DD HH:MM:SS)".white());
+    println!("    {}        {}", "--task <TASK>".blue(), "Only count sessions with this task label".white());
     println!("    {}: {}", "Example".bright_magenta(), "count-precise -s \"2024-01-15 09:00:00\" -e \"2024-01-15 17:00:00\"".green());
+    println!();
+
+    println!("  {}", "count-by-task [OPTIONS]".yellow().bold());
+    println!("    {}  {}", "-l, --log-location <PATH>".blue(), "Log file path".white());
+    println!("    {}         {}", "-s, --start <DATE>".blue(), "Start date (YYYY-MM-DD)".white());
+    println!("    {}           {}", "-e, --end <DATE>".blue(), "End date (YYYY-MM-DD)".white());
+    println!("    {}: {}", "Example".bright_magenta(), "count-by-task -s 2024-01-01 -e 2024-01-31".green());
     println!();
     
     println!("{}", "VISUALIZATION:".bright_green().bold());

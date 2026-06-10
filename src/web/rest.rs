@@ -13,6 +13,7 @@ struct RestRequest {
     log_path: String,
     time: u64,
     app_list: Vec<String>,
+    task: Option<String>,
 }
 
 struct MonitorSession {
@@ -21,6 +22,7 @@ struct MonitorSession {
     log_path: String,
     time: u64,
     app_list: Vec<String>,
+    task: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -36,6 +38,7 @@ struct MonitorStatusResponse {
     log_path: Option<String>,
     time: Option<u64>,
     app_list: Vec<String>,
+    task: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -52,6 +55,7 @@ fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusRespons
             log_path: Some(session.log_path.clone()),
             time: Some(session.time),
             app_list: session.app_list.clone(),
+            task: session.task.clone(),
         },
         None => MonitorStatusResponse {
             running: false,
@@ -60,6 +64,7 @@ fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusRespons
             log_path: None,
             time: None,
             app_list: Vec::new(),
+            task: None,
         },
     }
 }
@@ -80,6 +85,12 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
     let time = rest_request.time;
     let app_list = rest_request.app_list.clone();
     let app_list_for_task = app_list.clone();
+    let task = rest_request
+        .task
+        .as_ref()
+        .map(|task| task.trim().to_string())
+        .filter(|task| !task.is_empty());
+    let task_for_task = task.clone();
 
     let mut current_session = match MONITOR_SESSION.lock() {
         Ok(session) => session,
@@ -98,7 +109,7 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
     }
 
     let handle = actix_web::rt::spawn(async move {
-        run_rest_reminder(log_path, time, app_list_for_task).await;
+        run_rest_reminder(log_path, time, app_list_for_task, task_for_task).await;
     });
 
     *current_session = Some(MonitorSession {
@@ -107,6 +118,7 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
         log_path: log_path_string,
         time,
         app_list,
+        task,
     });
 
     HttpResponse::Ok().json(RestResponse {
@@ -219,6 +231,7 @@ mod tests {
                 .to_string(),
             time: 3600,
             app_list: vec!["rest-reminder-test-process-that-should-not-exist".to_string()],
+            task: Some("test".to_string()),
         };
 
         let start_req = test::TestRequest::post()

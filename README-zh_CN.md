@@ -26,6 +26,7 @@ Rest Reminder 是一个基于 Rust 的桌面工具，用于监控专注工作状
 - Web UI 显示当前监控状态、已运行时间，并支持停止监控。
 - Web UI 会保存日志路径、提醒间隔和已选择的监控应用，下次打开自动恢复。
 - Web UI 支持最近日志预览和生成图表后的页面内预览。
+- 支持给工作会话添加任务标签，并在 CLI 和 Web UI 中按任务标签过滤统计。
 - 支持 Python 插件，在程序初始化、工作开始、休息提醒时执行自定义逻辑。
 
 ## 截图
@@ -68,7 +69,7 @@ http://localhost:60606
 Web UI 包含三个主要功能区：
 
 - **开始监控**：选择日志目录、提醒间隔和要监控的应用。
-- **统计时长**：按日期范围、单日或精确时间段统计工作时长。
+- **统计时长**：按日期范围、单日或精确时间段统计工作时长，也可以按任务标签过滤。
 - **生成图表**：选择日志文件和图片保存位置，生成工作趋势 PNG。
 
 ### Web UI 便利功能
@@ -78,6 +79,7 @@ Web UI 包含三个主要功能区：
 - “监控应用”输入框会读取当前正在运行的进程。
 - 点击下拉列表中的进程即可添加监控项。
 - 如果目标应用还没有启动，也可以手动输入进程名后按 Enter 添加。
+- 可以为新工作会话添加任务标签，例如 `coding`、`reading`、`meeting`。
 - 页面会显示监控是否正在运行、已运行多久、正在监控哪些应用。
 - 可以直接在 Web UI 中停止当前监控。
 - 重新打开页面时，会自动恢复上次的日志路径、提醒间隔和监控应用。
@@ -99,6 +101,7 @@ rest
 count
 count-single-day
 count-precise
+count-by-task
 plot
 web
 help
@@ -112,14 +115,14 @@ exit
 ### 开始监控
 
 ```bash
-cargo run -- rest -l <日志目录> -t <秒数> -a <应用_1> <应用_2> ...
+cargo run -- rest -l <日志目录> -t <秒数> -a <应用_1> <应用_2> ... --task <任务标签>
 ```
 
 示例：
 
 ```bash
 cargo run -- rest -l ~/Desktop -t 3600 -a "Cursor" "Xcode"
-cargo run -- rest -l D:\ -t 3600 -a Code.exe Notion.exe
+cargo run -- rest -l D:\ -t 3600 -a Code.exe Notion.exe --task coding
 ```
 
 说明：
@@ -127,6 +130,7 @@ cargo run -- rest -l D:\ -t 3600 -a Code.exe Notion.exe
 - `rest` 命令里的 `-l` 需要传入目录，程序会在该目录写入 `focus_log.txt`。
 - `-t` 单位是秒，默认是 `3600` 秒。
 - `-a` 可以传入一个或多个进程名。
+- `--task` 是可选参数。传入后，新会话会保存这个任务标签。
 - 默认监控应用因平台而异：
   - Windows: `idea64.exe`, `rustrover64.exe`, `Code.exe`
   - macOS: `IntelliJ IDEA`, `RustRover`, `Cursor`, `Xcode`
@@ -148,6 +152,7 @@ YYYY-MM-DD
 
 ```bash
 cargo run -- count -l ~/Desktop/focus_log.txt -s 2025-04-19 -e 2025-04-27
+cargo run -- count -l ~/Desktop/focus_log.txt -s 2025-04-19 -e 2025-04-27 --task coding
 ```
 
 ### 统计单日
@@ -160,6 +165,7 @@ cargo run -- count-single-day -l <日志文件> -d <日期>
 
 ```bash
 cargo run -- count-single-day -l ~/Desktop/focus_log.txt -d 2025-04-26
+cargo run -- count-single-day -l ~/Desktop/focus_log.txt -d 2025-04-26 --task coding
 ```
 
 ### 统计精确时间段
@@ -178,7 +184,22 @@ YYYY-MM-DD HH:MM:SS
 
 ```bash
 cargo run -- count-precise -l ~/Desktop/focus_log.txt -s "2025-04-19 22:50:00" -e "2025-04-26 13:45:30"
+cargo run -- count-precise -l ~/Desktop/focus_log.txt -s "2025-04-19 22:50:00" -e "2025-04-26 13:45:30" --task coding
 ```
+
+### 按任务汇总
+
+```bash
+cargo run -- count-by-task -l <日志文件> -s <开始日期> -e <结束日期>
+```
+
+示例：
+
+```bash
+cargo run -- count-by-task -l ~/Desktop/focus_log.txt -s 2025-04-19 -e 2025-04-27
+```
+
+没有任务标签的会话会归类为 `Unlabeled`。
 
 ### 生成工作趋势图
 
@@ -200,6 +221,7 @@ cargo run -- plot -l ~/Desktop/focus_log.txt -p ~/Desktop/plot.png -s 2025-04-16
 - `POST /rest/stop`
 - `GET /rest/status`
 - `POST /count`
+- `POST /count-by-task`
 - `POST /count-single-day`
 - `POST /count-precise`
 - `POST /plot`
@@ -275,10 +297,10 @@ cargo run -- gen -n my_plugin
 
 ## 日志格式
 
-工作会话会按如下格式写入日志：
+新的工作会话会以 JSON Lines 写入日志，记录开始时间、结束时间、持续秒数、监控应用和可选任务标签：
 
-```text
-[2025-04-19 22:16:15 ~ 2025-04-19 22:46:32] You worked for 30.28 minutes
+```json
+{"start":"2025-04-19T22:16:15+08:00","end":"2025-04-19T22:46:32+08:00","duration_seconds":1817,"apps":["Cursor"],"task":"coding"}
 ```
 
-统计和图表功能依赖这个格式。
+统计和图表功能仍兼容旧文本日志，例如 `[2025-04-19 22:16:15 ~ 2025-04-19 22:46:32] You worked for 30.28 minutes`。

@@ -54,6 +54,10 @@
                     <span data-i18n="reminderInterval">Reminder interval (seconds)</span>
                     <input name="time" type="number" min="1" step="1" value="3600" required>
                 </label>
+                <label>
+                    <span data-i18n="taskLabel">Task label</span>
+                    <input name="task" type="text" placeholder="Example: coding" data-i18n-placeholder="taskPlaceholder">
+                </label>
                 <label class="full-width">
                     <span data-i18n="monitoredApps">Monitored apps</span>
                     <div class="process-picker" data-process-picker>
@@ -86,6 +90,10 @@
                     <span class="info-label" data-i18n="monitoringApps">Monitoring apps</span>
                     <p data-monitor-apps data-i18n="noneValue">None</p>
                 </div>
+                <div class="full-width">
+                    <span class="info-label" data-i18n="currentTask">Current task</span>
+                    <p data-monitor-task data-i18n="noneValue">None</p>
+                </div>
             </div>
         </section>
 
@@ -98,6 +106,7 @@
                 <button class="mode is-active" type="button" data-count-mode="range" data-i18n="modeRange">Date range</button>
                 <button class="mode" type="button" data-count-mode="single" data-i18n="modeSingle">Single day</button>
                 <button class="mode" type="button" data-count-mode="precise" data-i18n="modePrecise">Precise time</button>
+                <button class="mode" type="button" data-count-mode="task-summary" data-i18n="modeTaskSummary">By task</button>
             </div>
 
             <form class="form-grid count-form is-active" data-endpoint="/count" data-kind="count-range" data-count-form="range">
@@ -116,6 +125,10 @@
                     <span data-i18n="endDate">End date</span>
                     <input name="end_time" type="date" required>
                 </label>
+                <label>
+                    <span data-i18n="taskFilter">Task filter</span>
+                    <input name="task" type="text" placeholder="Optional task label" data-i18n-placeholder="taskFilterPlaceholder">
+                </label>
                 <div class="actions full-width">
                     <button type="submit" data-i18n="calculateRange">Calculate range</button>
                     <output class="status" aria-live="polite"></output>
@@ -133,6 +146,10 @@
                 <label>
                     <span data-i18n="date">Date</span>
                     <input name="date" type="date" required>
+                </label>
+                <label>
+                    <span data-i18n="taskFilter">Task filter</span>
+                    <input name="task" type="text" placeholder="Optional task label" data-i18n-placeholder="taskFilterPlaceholder">
                 </label>
                 <div class="actions full-width">
                     <button type="submit" data-i18n="calculateSingle">Calculate day</button>
@@ -156,8 +173,34 @@
                     <span data-i18n="endTime">End time</span>
                     <input name="end_time" type="datetime-local" step="1" required>
                 </label>
+                <label>
+                    <span data-i18n="taskFilter">Task filter</span>
+                    <input name="task" type="text" placeholder="Optional task label" data-i18n-placeholder="taskFilterPlaceholder">
+                </label>
                 <div class="actions full-width">
                     <button type="submit" data-i18n="calculatePrecise">Calculate precise range</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+
+            <form class="form-grid count-form" data-endpoint="/count-by-task" data-kind="count-task-summary" data-count-form="task-summary">
+                <label class="full-width">
+                    <span data-i18n="logFile">Log file</span>
+                    <div class="path-control">
+                        <input name="log_path" type="text" placeholder="Example: ~/Desktop/focus_log.txt" data-i18n-placeholder="logFilePlaceholder" required>
+                        <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
+                    </div>
+                </label>
+                <label>
+                    <span data-i18n="startDate">Start date</span>
+                    <input name="start_time" type="date" required>
+                </label>
+                <label>
+                    <span data-i18n="endDate">End date</span>
+                    <input name="end_time" type="date" required>
+                </label>
+                <div class="actions full-width">
+                    <button type="submit" data-i18n="calculateTaskSummary">Summarize tasks</button>
                     <output class="status" aria-live="polite"></output>
                 </div>
             </form>

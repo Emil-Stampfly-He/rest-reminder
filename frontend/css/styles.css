@@ -441,6 +441,7 @@ input:focus {
     min-height: 24px;
     color: var(--muted);
     font-size: 14px;
+    white-space: pre-line;
 }
 
 .status.is-success {

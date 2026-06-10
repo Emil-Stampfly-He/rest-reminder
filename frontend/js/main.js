@@ -18,6 +18,8 @@ const translations = {
     logDirectory: 'Log directory',
     logDirectoryPlaceholder: 'Example: ~/Desktop or D:\\',
     reminderInterval: 'Reminder interval (seconds)',
+    taskLabel: 'Task label',
+    taskPlaceholder: 'Example: coding',
     monitoredApps: 'Monitored apps',
     appsPlaceholder: 'Example: Cursor, Xcode, Code',
     processSearchPlaceholder: 'Search running processes or type an app name',
@@ -36,6 +38,7 @@ const translations = {
     monitorStopped: 'Stopped',
     monitorElapsed: 'Elapsed',
     monitoringApps: 'Monitoring apps',
+    currentTask: 'Current task',
     noneValue: 'None',
     alreadyRunning: 'Monitoring is already running.',
     stoppedMonitoring: 'Monitoring stopped.',
@@ -45,16 +48,22 @@ const translations = {
     modeRange: 'Date range',
     modeSingle: 'Single day',
     modePrecise: 'Precise time',
+    modeTaskSummary: 'By task',
     logFile: 'Log file',
     logFilePlaceholder: 'Example: ~/Desktop/focus_log.txt',
     startDate: 'Start date',
     endDate: 'End date',
+    taskFilter: 'Task filter',
+    taskFilterPlaceholder: 'Optional task label',
     calculateRange: 'Calculate range',
     date: 'Date',
     calculateSingle: 'Calculate day',
     startTime: 'Start time',
     endTime: 'End time',
     calculatePrecise: 'Calculate precise range',
+    calculateTaskSummary: 'Summarize tasks',
+    taskSummaryEmpty: 'No task sessions found.',
+    taskSummaryLine: ({ task, formatted, seconds }) => `${task}: ${formatted} (${seconds} seconds)`,
     plotTitle: 'Generate work trend chart',
     plotDescription: 'Generate a work trend image for the selected date range from the log file.',
     plotLocation: 'Chart save location',
@@ -91,6 +100,8 @@ const translations = {
     logDirectory: '日志目录',
     logDirectoryPlaceholder: '例如 ~/Desktop 或 D:\\',
     reminderInterval: '提醒间隔（秒）',
+    taskLabel: '任务标签',
+    taskPlaceholder: '例如 coding',
     monitoredApps: '监控应用',
     appsPlaceholder: '例如 Cursor, Xcode, Code',
     processSearchPlaceholder: '搜索正在运行的进程，或输入应用名称',
@@ -109,6 +120,7 @@ const translations = {
     monitorStopped: '已停止',
     monitorElapsed: '已运行',
     monitoringApps: '监控应用',
+    currentTask: '当前任务',
     noneValue: '无',
     alreadyRunning: '监控已经在运行。',
     stoppedMonitoring: '监控已停止。',
@@ -118,16 +130,22 @@ const translations = {
     modeRange: '日期范围',
     modeSingle: '单日',
     modePrecise: '精确时间',
+    modeTaskSummary: '按任务',
     logFile: '日志文件',
     logFilePlaceholder: '例如 ~/Desktop/focus_log.txt',
     startDate: '开始日期',
     endDate: '结束日期',
+    taskFilter: '任务过滤',
+    taskFilterPlaceholder: '可选任务标签',
     calculateRange: '统计范围',
     date: '日期',
     calculateSingle: '统计单日',
     startTime: '开始时间',
     endTime: '结束时间',
     calculatePrecise: '精确统计',
+    calculateTaskSummary: '汇总任务',
+    taskSummaryEmpty: '没有找到任务记录。',
+    taskSummaryLine: ({ task, formatted, seconds }) => `${task}：${formatted}（${seconds} 秒）`,
     plotTitle: '生成工作趋势图',
     plotDescription: '根据日志文件生成指定日期范围内的工作趋势图片。',
     plotLocation: '图片保存位置',
@@ -164,6 +182,8 @@ const translations = {
     logDirectory: '日誌目錄',
     logDirectoryPlaceholder: '例如 ~/Desktop 或 D:\\',
     reminderInterval: '提醒間隔（秒）',
+    taskLabel: '任務標籤',
+    taskPlaceholder: '例如 coding',
     monitoredApps: '監控應用程式',
     appsPlaceholder: '例如 Cursor, Xcode, Code',
     processSearchPlaceholder: '搜尋正在執行的程序，或輸入應用程式名稱',
@@ -182,6 +202,7 @@ const translations = {
     monitorStopped: '已停止',
     monitorElapsed: '已執行',
     monitoringApps: '監控應用程式',
+    currentTask: '目前任務',
     noneValue: '無',
     alreadyRunning: '監控已經在執行。',
     stoppedMonitoring: '監控已停止。',
@@ -191,16 +212,22 @@ const translations = {
     modeRange: '日期範圍',
     modeSingle: '單日',
     modePrecise: '精確時間',
+    modeTaskSummary: '依任務',
     logFile: '日誌檔案',
     logFilePlaceholder: '例如 ~/Desktop/focus_log.txt',
     startDate: '開始日期',
     endDate: '結束日期',
+    taskFilter: '任務篩選',
+    taskFilterPlaceholder: '可選任務標籤',
     calculateRange: '統計範圍',
     date: '日期',
     calculateSingle: '統計單日',
     startTime: '開始時間',
     endTime: '結束時間',
     calculatePrecise: '精確統計',
+    calculateTaskSummary: '彙總任務',
+    taskSummaryEmpty: '找不到任務記錄。',
+    taskSummaryLine: ({ task, formatted, seconds }) => `${task}：${formatted}（${seconds} 秒）`,
     plotTitle: '產生工作趨勢圖',
     plotDescription: '根據日誌檔案，產生指定日期範圍內的工作趨勢圖片。',
     plotLocation: '圖片儲存位置',
@@ -237,6 +264,8 @@ const translations = {
     logDirectory: 'ログディレクトリ',
     logDirectoryPlaceholder: '例: ~/Desktop または D:\\',
     reminderInterval: '通知間隔（秒）',
+    taskLabel: 'タスクラベル',
+    taskPlaceholder: '例: coding',
     monitoredApps: '監視するアプリ',
     appsPlaceholder: '例: Cursor, Xcode, Code',
     processSearchPlaceholder: '実行中のプロセスを検索、またはアプリ名を入力',
@@ -255,6 +284,7 @@ const translations = {
     monitorStopped: '停止中',
     monitorElapsed: '経過時間',
     monitoringApps: '監視中のアプリ',
+    currentTask: '現在のタスク',
     noneValue: 'なし',
     alreadyRunning: '監視はすでに実行中です。',
     stoppedMonitoring: '監視を停止しました。',
@@ -264,16 +294,22 @@ const translations = {
     modeRange: '日付範囲',
     modeSingle: '単日',
     modePrecise: '正確な時間',
+    modeTaskSummary: 'タスク別',
     logFile: 'ログファイル',
     logFilePlaceholder: '例: ~/Desktop/focus_log.txt',
     startDate: '開始日',
     endDate: '終了日',
+    taskFilter: 'タスクフィルター',
+    taskFilterPlaceholder: '任意のタスクラベル',
     calculateRange: '範囲を計算',
     date: '日付',
     calculateSingle: '1日を計算',
     startTime: '開始時刻',
     endTime: '終了時刻',
     calculatePrecise: '正確な範囲を計算',
+    calculateTaskSummary: 'タスクを集計',
+    taskSummaryEmpty: 'タスク記録が見つかりません。',
+    taskSummaryLine: ({ task, formatted, seconds }) => `${task}: ${formatted}（${seconds} 秒）`,
     plotTitle: '作業トレンドグラフを作成',
     plotDescription: 'ログファイルから、指定した日付範囲の作業トレンド画像を作成します。',
     plotLocation: 'グラフの保存先',
@@ -310,6 +346,8 @@ const translations = {
     logDirectory: 'Dossier du journal',
     logDirectoryPlaceholder: 'Exemple : ~/Desktop ou D:\\',
     reminderInterval: 'Intervalle de rappel (secondes)',
+    taskLabel: 'Libellé de tâche',
+    taskPlaceholder: 'Exemple : coding',
     monitoredApps: 'Applications suivies',
     appsPlaceholder: 'Exemple : Cursor, Xcode, Code',
     processSearchPlaceholder: 'Rechercher les processus actifs ou saisir une application',
@@ -328,6 +366,7 @@ const translations = {
     monitorStopped: 'Arrêté',
     monitorElapsed: 'Écoulé',
     monitoringApps: 'Applications suivies',
+    currentTask: 'Tâche actuelle',
     noneValue: 'Aucun',
     alreadyRunning: 'Le suivi est déjà en cours.',
     stoppedMonitoring: 'Le suivi est arrêté.',
@@ -337,16 +376,22 @@ const translations = {
     modeRange: 'Période',
     modeSingle: 'Jour unique',
     modePrecise: 'Heure précise',
+    modeTaskSummary: 'Par tâche',
     logFile: 'Fichier journal',
     logFilePlaceholder: 'Exemple : ~/Desktop/focus_log.txt',
     startDate: 'Date de début',
     endDate: 'Date de fin',
+    taskFilter: 'Filtre de tâche',
+    taskFilterPlaceholder: 'Libellé de tâche facultatif',
     calculateRange: 'Calculer la période',
     date: 'Date',
     calculateSingle: 'Calculer le jour',
     startTime: 'Heure de début',
     endTime: 'Heure de fin',
     calculatePrecise: 'Calculer la plage précise',
+    calculateTaskSummary: 'Résumer les tâches',
+    taskSummaryEmpty: 'Aucune session de tâche trouvée.',
+    taskSummaryLine: ({ task, formatted, seconds }) => `${task} : ${formatted} (${seconds} secondes)`,
     plotTitle: 'Créer le graphique de tendance',
     plotDescription: 'Crée une image de tendance du temps de travail pour la période choisie à partir du journal.',
     plotLocation: 'Emplacement du graphique',
@@ -467,6 +512,7 @@ const readForm = (form) => {
 
   if (kind === 'rest') {
     data.time = Number(data.time);
+    data.task = data.task?.trim() || null;
     data.app_list = processState.selected.length
       ? [...processState.selected]
       : data.app_list
@@ -482,6 +528,10 @@ const readForm = (form) => {
   if (kind === 'count-precise') {
     data.start_time = toPreciseApiDate(data.start_time);
     data.end_time = toPreciseApiDate(data.end_time);
+  }
+
+  if (kind.startsWith('count')) {
+    data.task = data.task?.trim() || null;
   }
 
   return data;
@@ -500,10 +550,12 @@ function saveConfig() {
     rest: {
       logPath: document.querySelector('#rest-panel input[name="log_path"]')?.value || '',
       time: document.querySelector('#rest-panel input[name="time"]')?.value || '3600',
+      task: document.querySelector('#rest-panel input[name="task"]')?.value || '',
       apps: processState.selected,
     },
     count: {
       logPath: document.querySelector('#count-panel input[name="log_path"]')?.value || '',
+      task: document.querySelector('#count-panel .count-form.is-active input[name="task"]')?.value || '',
     },
     plot: {
       logPath: document.querySelector('#plot-panel input[name="log_path"]')?.value || '',
@@ -519,12 +571,15 @@ function restoreConfig() {
 
   const restLog = document.querySelector('#rest-panel input[name="log_path"]');
   const restTime = document.querySelector('#rest-panel input[name="time"]');
+  const restTask = document.querySelector('#rest-panel input[name="task"]');
   const countLogs = document.querySelectorAll('#count-panel input[name="log_path"]');
+  const countTasks = document.querySelectorAll('#count-panel input[name="task"]');
   const plotLog = document.querySelector('#plot-panel input[name="log_path"]');
   const plotLocation = document.querySelector('#plot-panel input[name="plot_location"]');
 
   if (restLog && config.rest?.logPath) restLog.value = config.rest.logPath;
   if (restTime && config.rest?.time) restTime.value = config.rest.time;
+  if (restTask && config.rest?.task) restTask.value = config.rest.task;
   if (Array.isArray(config.rest?.apps)) {
     processState.selected = [...config.rest.apps];
     renderSelectedProcesses();
@@ -532,12 +587,27 @@ function restoreConfig() {
   countLogs.forEach((input) => {
     if (config.count?.logPath) input.value = config.count.logPath;
   });
+  countTasks.forEach((input) => {
+    if (config.count?.task) input.value = config.count.task;
+  });
   if (plotLog && config.plot?.logPath) plotLog.value = config.plot.logPath;
   if (plotLocation && config.plot?.plotLocation) plotLocation.value = config.plot.plotLocation;
   configReady = true;
 }
 
 const resultMessage = (kind, payload) => {
+  if (kind === 'count-task-summary') {
+    const summaries = Array.isArray(payload.summaries) ? payload.summaries : [];
+    if (!summaries.length) return t('taskSummaryEmpty');
+    return summaries
+      .map((item) => t('taskSummaryLine')({
+        task: item.task,
+        formatted: formatSeconds(item.seconds),
+        seconds: item.seconds,
+      }))
+      .join('\n');
+  }
+
   if (kind.startsWith('count')) {
     return t('countResult')({
       formatted: formatSeconds(payload.seconds),
@@ -611,6 +681,7 @@ function renderMonitorStatus(status) {
   const state = document.querySelector('[data-monitor-state]');
   const elapsed = document.querySelector('[data-monitor-elapsed]');
   const apps = document.querySelector('[data-monitor-apps]');
+  const task = document.querySelector('[data-monitor-task]');
   const stopButton = document.querySelector('[data-stop-monitor]');
 
   if (state) {
@@ -621,6 +692,9 @@ function renderMonitorStatus(status) {
   }
   if (apps) {
     apps.textContent = status.app_list?.length ? status.app_list.join(', ') : t('noneValue');
+  }
+  if (task) {
+    task.textContent = status.task || t('noneValue');
   }
   if (stopButton) {
     stopButton.disabled = !status.running;
