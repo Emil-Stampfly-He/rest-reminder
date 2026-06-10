@@ -73,6 +73,8 @@
                 </label>
                 <div class="actions full-width">
                     <button type="submit" data-i18n="startMonitoring">Start monitoring</button>
+                    <button class="secondary-action" type="button" data-pause-monitor data-i18n="pauseMonitoring">Pause monitoring</button>
+                    <button class="secondary-action" type="button" data-resume-monitor data-i18n="resumeMonitoring">Resume monitoring</button>
                     <button class="secondary-action" type="button" data-stop-monitor data-i18n="stopMonitoring">Stop monitoring</button>
                     <output class="status" aria-live="polite"></output>
                 </div>
@@ -85,6 +87,10 @@
                 <div>
                     <span class="info-label" data-i18n="monitorElapsed">Elapsed</span>
                     <strong data-monitor-elapsed>0s</strong>
+                </div>
+                <div>
+                    <span class="info-label" data-i18n="pauseStatus">Pause status</span>
+                    <strong data-monitor-paused data-i18n="monitorActive">Active</strong>
                 </div>
                 <div class="full-width">
                     <span class="info-label" data-i18n="monitoringApps">Monitoring apps</span>

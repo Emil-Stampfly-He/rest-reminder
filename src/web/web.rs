@@ -3,7 +3,7 @@ use crate::web::dialog::{pick_directory, pick_file, pick_save_file};
 use crate::web::log::log_preview;
 use crate::web::plot::plot_work_trend;
 use crate::web::process::list_processes;
-use crate::web::rest::{rest, rest_status, stop_rest};
+use crate::web::rest::{pause_rest, rest, rest_status, resume_rest, stop_rest};
 use actix_files::Files;
 use actix_web::{App, HttpServer, rt};
 use std::thread;
@@ -17,6 +17,8 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
                 App::new()
                     // Register API routes first so they take precedence over static files
                     .service(rest)
+                    .service(pause_rest)
+                    .service(resume_rest)
                     .service(stop_rest)
                     .service(rest_status)
                     .service(count)

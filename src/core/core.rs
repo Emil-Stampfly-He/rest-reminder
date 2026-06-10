@@ -6,6 +6,7 @@ use std::time::Instant;
 use chrono::{DateTime, Local};
 use rand::Rng;
 use sysinfo::{ProcessesToUpdate, System};
+use tokio::sync::watch;
 use tokio::time::{Duration, interval};
 use colored::*;
 use crate::plugin::plugin::{PluginContext, PluginManager};
@@ -25,9 +26,16 @@ enum WorkSessionResult {
     CtrlCPressed,
     TimeReached,
     ProcessEnded,
+    Paused,
 }
 
-pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<String>, task: Option<String>) {
+pub async fn run_rest_reminder(
+    mut log_location: PathBuf,
+    time: u64,
+    app: Vec<String>,
+    task: Option<String>,
+    mut pause_rx: Option<watch::Receiver<bool>>,
+) {
     let mut sys = System::new_all();
     let mut process_check_interval = interval(Duration::from_secs(1));
     let mut msg_undiscovered_display_interval = interval(Duration::from_secs(2));
@@ -63,6 +71,10 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
             
             // Regular process checking
             _ = process_check_interval.tick() => {
+                if is_paused(&pause_rx) {
+                    continue;
+                }
+
                 sys.refresh_processes(ProcessesToUpdate::All, true);
                 let found = sys.processes()
                     .values()
@@ -90,7 +102,7 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
                     let start_time = Instant::now();
                     
                     // Monitor working session
-                    let work_session_result = monitor_work_session(&mut sys, &app, time, start_time).await;
+                    let work_session_result = monitor_work_session(&mut sys, &app, time, start_time, &mut pause_rx).await;
                     match work_session_result {
                         WorkSessionResult::CtrlCPressed => {
                             log(start, Local::now(), &mut log_location, &app, task.as_deref());
@@ -114,6 +126,12 @@ pub async fn run_rest_reminder(mut log_location: PathBuf, time: u64, app: Vec<St
                             println!("{}", "Process(es) ended, you finally decide to rest...".bright_blue().bold());
                             last_found_state = false;
                         }
+                        WorkSessionResult::Paused => {
+                            log(start, Local::now(), &mut log_location, &app, task.as_deref());
+                            println!("{}", "Monitoring paused".bright_yellow().bold());
+                            wait_until_resumed(&mut pause_rx).await;
+                            last_found_state = false;
+                        }
                     }
                 }
             }
@@ -129,7 +147,8 @@ async fn monitor_work_session(
     sys: &mut System, 
     app: &[String], 
     time: u64, 
-    start_time: Instant
+    start_time: Instant,
+    pause_rx: &mut Option<watch::Receiver<bool>>,
 ) -> WorkSessionResult {
     let mut heartbeat = interval(Duration::from_secs(2));
     
@@ -142,6 +161,10 @@ async fn monitor_work_session(
             
             // Regular heartbeat check
             _ = heartbeat.tick() => {
+                if is_paused(pause_rx) {
+                    return WorkSessionResult::Paused;
+                }
+
                 sys.refresh_processes(ProcessesToUpdate::All, true);
                 let still_running = sys.processes()
                     .values()
@@ -159,6 +182,22 @@ async fn monitor_work_session(
                     return WorkSessionResult::TimeReached;
                 }
             }
+        }
+    }
+}
+
+fn is_paused(pause_rx: &Option<watch::Receiver<bool>>) -> bool {
+    pause_rx.as_ref().is_some_and(|pause_rx| *pause_rx.borrow())
+}
+
+async fn wait_until_resumed(pause_rx: &mut Option<watch::Receiver<bool>>) {
+    let Some(pause_rx) = pause_rx else {
+        return;
+    };
+
+    while *pause_rx.borrow() {
+        if pause_rx.changed().await.is_err() {
+            return;
         }
     }
 }

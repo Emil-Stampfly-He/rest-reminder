@@ -77,7 +77,7 @@ pub async fn execute_command(cmd: Command) {
             task,
         } => {
             println!("{}", "Starting Rest Reminder...".bright_yellow().bold());
-            run_rest_reminder(log_to, time, app, task).await;
+            run_rest_reminder(log_to, time, app, task, None).await;
         }
         Command::Plot {
             log_location,

@@ -4,6 +4,7 @@ use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::{LazyLock, Mutex};
+use tokio::sync::watch;
 
 static MONITOR_SESSION: LazyLock<Mutex<Option<MonitorSession>>> =
     LazyLock::new(|| Mutex::new(None));
@@ -23,6 +24,7 @@ struct MonitorSession {
     time: u64,
     app_list: Vec<String>,
     task: Option<String>,
+    pause_tx: watch::Sender<bool>,
 }
 
 #[derive(Serialize)]
@@ -39,6 +41,7 @@ struct MonitorStatusResponse {
     time: Option<u64>,
     app_list: Vec<String>,
     task: Option<String>,
+    paused: bool,
 }
 
 #[derive(Serialize)]
@@ -56,6 +59,7 @@ fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusRespons
             time: Some(session.time),
             app_list: session.app_list.clone(),
             task: session.task.clone(),
+            paused: *session.pause_tx.borrow(),
         },
         None => MonitorStatusResponse {
             running: false,
@@ -65,6 +69,7 @@ fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusRespons
             time: None,
             app_list: Vec::new(),
             task: None,
+            paused: false,
         },
     }
 }
@@ -108,8 +113,10 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
         });
     }
 
+    let (pause_tx, pause_rx) = watch::channel(false);
+
     let handle = actix_web::rt::spawn(async move {
-        run_rest_reminder(log_path, time, app_list_for_task, task_for_task).await;
+        run_rest_reminder(log_path, time, app_list_for_task, task_for_task, Some(pause_rx)).await;
     });
 
     *current_session = Some(MonitorSession {
@@ -119,6 +126,7 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
         time,
         app_list,
         task,
+        pause_tx,
     });
 
     HttpResponse::Ok().json(RestResponse {
@@ -143,6 +151,44 @@ async fn stop_rest() -> impl Responder {
 
     HttpResponse::Ok().json(RestResponse {
         status: "stopped".to_string(),
+    })
+}
+
+#[post("/rest/pause")]
+async fn pause_rest() -> impl Responder {
+    set_pause_state(true, "paused")
+}
+
+#[post("/rest/resume")]
+async fn resume_rest() -> impl Responder {
+    set_pause_state(false, "resumed")
+}
+
+fn set_pause_state(paused: bool, status: &str) -> HttpResponse {
+    let mut current_session = match MONITOR_SESSION.lock() {
+        Ok(session) => session,
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: "Failed to lock monitor session".to_string(),
+            });
+        }
+    };
+
+    clear_finished_session(&mut current_session);
+    let Some(session) = current_session.as_ref() else {
+        return HttpResponse::Conflict().json(ErrorResponse {
+            error: "Monitoring is not running".to_string(),
+        });
+    };
+
+    if session.pause_tx.send(paused).is_err() {
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            error: "Failed to update monitor pause state".to_string(),
+        });
+    }
+
+    HttpResponse::Ok().json(RestResponse {
+        status: status.to_string(),
     })
 }
 
@@ -196,6 +242,7 @@ mod tests {
         let body = body_to_string(test::read_body(response).await);
         assert!(body.contains(r#""running":false"#));
         assert!(body.contains(r#""app_list":[]"#));
+        assert!(body.contains(r#""paused":false"#));
     }
 
     #[actix_web::test]
@@ -220,6 +267,8 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .service(rest)
+                .service(pause_rest)
+                .service(resume_rest)
                 .service(rest_status)
                 .service(stop_rest),
         )
@@ -246,7 +295,26 @@ mod tests {
         assert_eq!(status_response.status(), StatusCode::OK);
         let status_body = body_to_string(test::read_body(status_response).await);
         assert!(status_body.contains(r#""running":true"#));
+        assert!(status_body.contains(r#""paused":false"#));
         assert!(status_body.contains("rest-reminder-test-process-that-should-not-exist"));
+
+        let pause_req = test::TestRequest::post().uri("/rest/pause").to_request();
+        let pause_response = test::call_service(&app, pause_req).await;
+        assert_eq!(pause_response.status(), StatusCode::OK);
+
+        let paused_status_req = test::TestRequest::get().uri("/rest/status").to_request();
+        let paused_status_response = test::call_service(&app, paused_status_req).await;
+        let paused_status_body = body_to_string(test::read_body(paused_status_response).await);
+        assert!(paused_status_body.contains(r#""paused":true"#));
+
+        let resume_req = test::TestRequest::post().uri("/rest/resume").to_request();
+        let resume_response = test::call_service(&app, resume_req).await;
+        assert_eq!(resume_response.status(), StatusCode::OK);
+
+        let resumed_status_req = test::TestRequest::get().uri("/rest/status").to_request();
+        let resumed_status_response = test::call_service(&app, resumed_status_req).await;
+        let resumed_status_body = body_to_string(test::read_body(resumed_status_response).await);
+        assert!(resumed_status_body.contains(r#""paused":false"#));
 
         let duplicate_req = test::TestRequest::post()
             .uri("/rest")
@@ -259,5 +327,21 @@ mod tests {
         let stop_response = test::call_service(&app, stop_req).await;
         assert_eq!(stop_response.status(), StatusCode::OK);
         reset_monitor_session();
+    }
+
+    #[actix_web::test]
+    async fn pause_and_resume_reject_when_no_monitor_is_running() {
+        let _guard = TEST_LOCK.lock().await;
+        reset_monitor_session();
+
+        let app = test::init_service(App::new().service(pause_rest).service(resume_rest)).await;
+
+        let pause_req = test::TestRequest::post().uri("/rest/pause").to_request();
+        let pause_response = test::call_service(&app, pause_req).await;
+        assert_eq!(pause_response.status(), StatusCode::CONFLICT);
+
+        let resume_req = test::TestRequest::post().uri("/rest/resume").to_request();
+        let resume_response = test::call_service(&app, resume_req).await;
+        assert_eq!(resume_response.status(), StatusCode::CONFLICT);
     }
 }

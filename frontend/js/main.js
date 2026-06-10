@@ -32,16 +32,23 @@ const translations = {
     noAppsSelected: 'Select at least one app to monitor.',
     removeApp: 'Remove',
     startMonitoring: 'Start monitoring',
+    pauseMonitoring: 'Pause monitoring',
+    resumeMonitoring: 'Resume monitoring',
     stopMonitoring: 'Stop monitoring',
     monitorStatus: 'Monitor status',
     monitorRunning: 'Running',
     monitorStopped: 'Stopped',
     monitorElapsed: 'Elapsed',
+    pauseStatus: 'Pause status',
+    monitorActive: 'Active',
+    monitorPaused: 'Paused',
     monitoringApps: 'Monitoring apps',
     currentTask: 'Current task',
     noneValue: 'None',
     alreadyRunning: 'Monitoring is already running.',
     stoppedMonitoring: 'Monitoring stopped.',
+    pausedMonitoring: 'Monitoring paused.',
+    resumedMonitoring: 'Monitoring resumed.',
     countTitle: 'Calculate work time',
     countDescription: 'Read focus_log.txt and calculate total work seconds by date range, single day, or precise time range.',
     statisticsMode: 'Statistics mode',
@@ -114,16 +121,23 @@ const translations = {
     noAppsSelected: '请至少选择一个需要监控的应用。',
     removeApp: '移除',
     startMonitoring: '启动监控',
+    pauseMonitoring: '暂停监控',
+    resumeMonitoring: '继续监控',
     stopMonitoring: '停止监控',
     monitorStatus: '监控状态',
     monitorRunning: '运行中',
     monitorStopped: '已停止',
     monitorElapsed: '已运行',
+    pauseStatus: '暂停状态',
+    monitorActive: '运行',
+    monitorPaused: '已暂停',
     monitoringApps: '监控应用',
     currentTask: '当前任务',
     noneValue: '无',
     alreadyRunning: '监控已经在运行。',
     stoppedMonitoring: '监控已停止。',
+    pausedMonitoring: '监控已暂停。',
+    resumedMonitoring: '监控已继续。',
     countTitle: '统计工作时长',
     countDescription: '读取 focus_log.txt，按日期范围、单日或精确时间段计算累计工作秒数。',
     statisticsMode: '统计方式',
@@ -196,16 +210,23 @@ const translations = {
     noAppsSelected: '請至少選擇一個需要監控的應用程式。',
     removeApp: '移除',
     startMonitoring: '啟動監控',
+    pauseMonitoring: '暫停監控',
+    resumeMonitoring: '繼續監控',
     stopMonitoring: '停止監控',
     monitorStatus: '監控狀態',
     monitorRunning: '執行中',
     monitorStopped: '已停止',
     monitorElapsed: '已執行',
+    pauseStatus: '暫停狀態',
+    monitorActive: '執行中',
+    monitorPaused: '已暫停',
     monitoringApps: '監控應用程式',
     currentTask: '目前任務',
     noneValue: '無',
     alreadyRunning: '監控已經在執行。',
     stoppedMonitoring: '監控已停止。',
+    pausedMonitoring: '監控已暫停。',
+    resumedMonitoring: '監控已繼續。',
     countTitle: '統計工作時長',
     countDescription: '讀取 focus_log.txt，依日期範圍、單日或精確時間區間計算累計工作秒數。',
     statisticsMode: '統計方式',
@@ -278,16 +299,23 @@ const translations = {
     noAppsSelected: '監視するアプリを少なくとも1つ選択してください。',
     removeApp: '削除',
     startMonitoring: '監視を開始',
+    pauseMonitoring: '監視を一時停止',
+    resumeMonitoring: '監視を再開',
     stopMonitoring: '監視を停止',
     monitorStatus: '監視状態',
     monitorRunning: '実行中',
     monitorStopped: '停止中',
     monitorElapsed: '経過時間',
+    pauseStatus: '一時停止状態',
+    monitorActive: '実行中',
+    monitorPaused: '一時停止中',
     monitoringApps: '監視中のアプリ',
     currentTask: '現在のタスク',
     noneValue: 'なし',
     alreadyRunning: '監視はすでに実行中です。',
     stoppedMonitoring: '監視を停止しました。',
+    pausedMonitoring: '監視を一時停止しました。',
+    resumedMonitoring: '監視を再開しました。',
     countTitle: '作業時間を計算',
     countDescription: 'focus_log.txt を読み込み、日付範囲、単日、または正確な時間範囲で合計作業秒数を計算します。',
     statisticsMode: '統計モード',
@@ -360,16 +388,23 @@ const translations = {
     noAppsSelected: 'Sélectionnez au moins une application à suivre.',
     removeApp: 'Supprimer',
     startMonitoring: 'Démarrer le suivi',
+    pauseMonitoring: 'Mettre en pause',
+    resumeMonitoring: 'Reprendre',
     stopMonitoring: 'Arrêter le suivi',
     monitorStatus: 'État du suivi',
     monitorRunning: 'En cours',
     monitorStopped: 'Arrêté',
     monitorElapsed: 'Écoulé',
+    pauseStatus: 'État de pause',
+    monitorActive: 'Actif',
+    monitorPaused: 'En pause',
     monitoringApps: 'Applications suivies',
     currentTask: 'Tâche actuelle',
     noneValue: 'Aucun',
     alreadyRunning: 'Le suivi est déjà en cours.',
     stoppedMonitoring: 'Le suivi est arrêté.',
+    pausedMonitoring: 'Le suivi est en pause.',
+    resumedMonitoring: 'Le suivi a repris.',
     countTitle: 'Calculer le temps de travail',
     countDescription: 'Lit focus_log.txt et calcule le total en secondes par période, journée unique ou plage horaire précise.',
     statisticsMode: 'Mode statistique',
@@ -680,12 +715,18 @@ function setProcessPickerMessage(message) {
 function renderMonitorStatus(status) {
   const state = document.querySelector('[data-monitor-state]');
   const elapsed = document.querySelector('[data-monitor-elapsed]');
+  const paused = document.querySelector('[data-monitor-paused]');
   const apps = document.querySelector('[data-monitor-apps]');
   const task = document.querySelector('[data-monitor-task]');
   const stopButton = document.querySelector('[data-stop-monitor]');
+  const pauseButton = document.querySelector('[data-pause-monitor]');
+  const resumeButton = document.querySelector('[data-resume-monitor]');
 
   if (state) {
     state.textContent = status.running ? t('monitorRunning') : t('monitorStopped');
+  }
+  if (paused) {
+    paused.textContent = status.paused ? t('monitorPaused') : t('monitorActive');
   }
   if (elapsed) {
     elapsed.textContent = status.elapsed_seconds ? formatSeconds(status.elapsed_seconds) : '0s';
@@ -698,6 +739,12 @@ function renderMonitorStatus(status) {
   }
   if (stopButton) {
     stopButton.disabled = !status.running;
+  }
+  if (pauseButton) {
+    pauseButton.disabled = !status.running || status.paused;
+  }
+  if (resumeButton) {
+    resumeButton.disabled = !status.running || !status.paused;
   }
 }
 
@@ -729,6 +776,28 @@ async function stopMonitoring() {
     await refreshMonitorStatus();
   } catch (error) {
     setStatus(form, error.message || t('requestFailed'), 'error');
+  }
+}
+
+async function setMonitoringPaused(paused) {
+  const form = document.querySelector('#rest-panel form');
+  const button = document.querySelector(paused ? '[data-pause-monitor]' : '[data-resume-monitor]');
+  if (!form || !button) return;
+
+  button.disabled = true;
+  setStatus(form, t('submitting'));
+
+  try {
+    const response = await fetch(paused ? '/rest/pause' : '/rest/resume', { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`${t('requestFailed')}: ${response.status}`);
+    }
+    setStatus(form, t(paused ? 'pausedMonitoring' : 'resumedMonitoring'), 'success');
+    await refreshMonitorStatus();
+  } catch (error) {
+    setStatus(form, error.message || t('requestFailed'), 'error');
+  } finally {
+    await refreshMonitorStatus();
   }
 }
 
@@ -1081,6 +1150,8 @@ function initProcessPicker() {
 }
 
 function initMonitorControls() {
+  document.querySelector('[data-pause-monitor]')?.addEventListener('click', () => setMonitoringPaused(true));
+  document.querySelector('[data-resume-monitor]')?.addEventListener('click', () => setMonitoringPaused(false));
   document.querySelector('[data-stop-monitor]')?.addEventListener('click', stopMonitoring);
   refreshMonitorStatus();
   window.setInterval(refreshMonitorStatus, 5000);
