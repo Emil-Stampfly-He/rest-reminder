@@ -1,7 +1,8 @@
-use tokio::fs::File;
+use std::path::PathBuf;
+use tokio::fs::{self, File};
 use tokio::io::AsyncWriteExt;
 
-pub async fn generate_plugin_template(file_name: &str) {
+pub async fn generate_plugin_template(file_name: &str) -> std::io::Result<PathBuf> {
     let python_content = r#""""
 DO NOT REMOVE THESE 2 CONSTANTS!
 Set _SHOULD_IGNORE = 1 if you do not wish to load this plugin.
@@ -32,11 +33,13 @@ PLUGIN_INFO = {
 }
     "#;
 
-    let file_path = format!("./plugins/{}.py", file_name);
-    let mut file = File::create(file_path).await.expect("Could not create file");
+    fs::create_dir_all("./plugins").await?;
+    let file_path = PathBuf::from(format!("./plugins/{}.py", file_name));
+    let mut file = File::create(&file_path).await?;
 
-    file.write_all(python_content.as_bytes()).await.expect("Could not write to file");
-    file.flush().await.expect("Could not flush file");
+    file.write_all(python_content.as_bytes()).await?;
+    file.flush().await?;
 
     println!("Successfully generated plugin.");
+    Ok(file_path)
 }

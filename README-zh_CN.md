@@ -26,6 +26,7 @@ Rest Reminder 是一个基于 Rust 的桌面工具，用于监控专注工作状
 - Web UI 显示当前监控状态、已运行时间，并支持暂停、继续和停止监控。
 - Web UI 会保存日志路径、提醒间隔和已选择的监控应用，下次打开自动恢复。
 - Web UI 支持最近日志预览和生成图表后的页面内预览。
+- Web UI 支持插件管理：查看插件、启用/禁用插件、生成模板、查看最近插件错误。
 - 支持给工作会话添加任务标签，并在 CLI 和 Web UI 中按任务标签过滤统计。
 - 支持 Python 插件，在程序初始化、工作开始、休息提醒时执行自定义逻辑。
 
@@ -71,6 +72,7 @@ Web UI 包含三个主要功能区：
 - **开始监控**：选择日志目录、提醒间隔和要监控的应用。
 - **统计时长**：按日期范围、单日或精确时间段统计工作时长，也可以按任务标签过滤。
 - **生成图表**：选择日志文件和图片保存位置，生成工作趋势 PNG。
+- **插件管理**：查看 `plugins/` 中的 Python 插件，启用/禁用插件，生成插件模板，查看最近错误。
 
 ### Web UI 便利功能
 
@@ -85,6 +87,8 @@ Web UI 包含三个主要功能区：
 - 重新打开页面时，会自动恢复上次的日志路径、提醒间隔和监控应用。
 - 统计前可以预览最近日志记录。
 - 生成趋势图后，可以直接在页面里预览 PNG 图片。
+- 插件管理页会读取 `PLUGIN_INFO`、标准钩子函数和 `_SHOULD_IGNORE` 状态。
+- 启用/禁用插件会更新插件文件中的 `_SHOULD_IGNORE` 常量。
 
 ## 交互模式
 
@@ -227,6 +231,10 @@ cargo run -- plot -l ~/Desktop/focus_log.txt -p ~/Desktop/plot.png -s 2025-04-16
 - `POST /count-single-day`
 - `POST /count-precise`
 - `POST /plot`
+- `GET /plugins`
+- `POST /plugins/generate`
+- `POST /plugins/{name}/enable`
+- `POST /plugins/{name}/disable`
 - `POST /log-preview`
 - `GET /processes`
 - `GET /dialog/directory`
@@ -290,6 +298,8 @@ Python 插件放在 [`plugins/`](plugins/) 目录中。
 ```bash
 cargo run -- gen -n my_plugin
 ```
+
+也可以在 Web UI 的“插件管理”页生成模板、启用/禁用插件。插件管理页会扫描 `plugins/*.py`，读取可选的 `PLUGIN_INFO`，并显示最近写入 `plugins/plugin_errors.log` 的加载或执行错误。
 
 当前包含的示例插件：
 

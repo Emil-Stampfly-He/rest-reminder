@@ -26,6 +26,7 @@ The project now includes both a command-line workflow and a local web UI.
 - Monitor status panel with elapsed time, pause/resume controls, and a stop button.
 - Saved web UI preferences for log paths, reminder interval, and monitored apps.
 - Recent log preview and generated chart preview in the browser.
+- Plugin management in the web UI: list plugins, enable/disable plugins, generate templates, and inspect recent plugin errors.
 - Optional task labels for new work sessions, with task-filtered statistics in the CLI and Web UI.
 - Python plugin hooks for custom automation on app initialization, work start, and break reminder.
 
@@ -66,11 +67,12 @@ Then open:
 http://localhost:60606
 ```
 
-The web UI includes three panels:
+The web UI includes four panels:
 
 - **Start monitoring**: choose a log directory, work interval, and applications to monitor.
 - **Work statistics**: calculate total work time by date range, single day, or precise time range, optionally filtered by task label.
 - **Generate chart**: choose a log file and save location for a work trend PNG.
+- **Plugins**: view Python plugins under `plugins/`, enable/disable plugins, generate templates, and inspect recent errors.
 
 ### Web UI conveniences
 
@@ -85,6 +87,8 @@ The web UI includes three panels:
 - Reopen the page with your previous log paths, interval, and monitored apps restored automatically.
 - Preview recent log entries before running statistics.
 - Preview the generated PNG chart directly in the browser after plotting.
+- The Plugins panel reads `PLUGIN_INFO`, standard hook functions, and `_SHOULD_IGNORE` state.
+- Enabling or disabling a plugin updates its `_SHOULD_IGNORE` constant.
 
 ## Interactive Mode
 
@@ -227,6 +231,10 @@ The local web server registers these endpoints:
 - `POST /count-single-day`
 - `POST /count-precise`
 - `POST /plot`
+- `GET /plugins`
+- `POST /plugins/generate`
+- `POST /plugins/{name}/enable`
+- `POST /plugins/{name}/disable`
 - `POST /log-preview`
 - `GET /processes`
 - `GET /dialog/directory`
@@ -290,6 +298,8 @@ Generate a plugin template:
 ```bash
 cargo run -- gen -n my_plugin
 ```
+
+You can also generate templates, enable plugins, and disable plugins from the web UI's **Plugins** panel. The panel scans `plugins/*.py`, reads optional `PLUGIN_INFO`, and shows recent load or execution errors written to `plugins/plugin_errors.log`.
 
 Example plugins are included:
 

@@ -2,6 +2,7 @@ use crate::web::count::{count, count_by_task, count_precise, count_single_day};
 use crate::web::dialog::{pick_directory, pick_file, pick_save_file};
 use crate::web::log::log_preview;
 use crate::web::plot::plot_work_trend;
+use crate::web::plugin::{disable_plugin, enable_plugin, generate_plugin, list_plugins};
 use crate::web::process::list_processes;
 use crate::web::rest::{pause_rest, rest, rest_status, resume_rest, stop_rest};
 use actix_files::Files;
@@ -26,6 +27,10 @@ pub async fn spawn_web_server() -> thread::JoinHandle<std::io::Result<()>> {
                     .service(count_single_day)
                     .service(count_precise)
                     .service(plot_work_trend)
+                    .service(list_plugins)
+                    .service(generate_plugin)
+                    .service(enable_plugin)
+                    .service(disable_plugin)
                     .service(log_preview)
                     .service(pick_directory)
                     .service(pick_file)

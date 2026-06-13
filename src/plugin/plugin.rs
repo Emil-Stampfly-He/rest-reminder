@@ -1,15 +1,41 @@
-use std::ffi::CString;
-use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyModule};
-use std::path::{Path, PathBuf};
-use std::process::Command;
 use chrono::Local;
-use walkdir::WalkDir;
 use colored::*;
 use pyo3::exceptions::PyIOError;
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyModule};
 use regex::Regex;
+use std::ffi::CString;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use tokio::process::Command;
+use walkdir::WalkDir;
 
 const IGNORE_PATTERN: &str = r"^\s*_SHOULD_IGNORE\s*=\s*1\s*$";
+pub const PLUGIN_ERROR_LOG_PATH: &str = "plugins/plugin_errors.log";
+
+pub fn append_plugin_error(plugin_name: &str, event: &str, error: &str) {
+    if let Some(parent) = Path::new(PLUGIN_ERROR_LOG_PATH).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    let Ok(mut file) = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(PLUGIN_ERROR_LOG_PATH)
+    else {
+        return;
+    };
+
+    let _ = writeln!(
+        file,
+        "[{}] [{}] {}: {}",
+        Local::now().format("%Y-%m-%d %H:%M:%S"),
+        plugin_name,
+        event,
+        error
+    );
+}
 
 pub struct PluginManager {
     inactivated_plugins: Vec<PluginScript>,
@@ -34,11 +60,19 @@ impl PluginManager {
     // Load all Python plugins in specified directory
     pub fn load_plugins(&mut self, plugin_dir: &str) -> PyResult<()> {
         if !Path::new(plugin_dir).exists() {
-            println!("{} {}", "Plugin directory not found:".yellow(), plugin_dir.red());
+            println!(
+                "{} {}",
+                "Plugin directory not found:".yellow(),
+                plugin_dir.red()
+            );
             return Ok(());
         }
 
-        println!("{} {}", "Loading plugins from:".bright_green().bold(), plugin_dir.cyan());
+        println!(
+            "{} {}",
+            "Loading plugins from:".bright_green().bold(),
+            plugin_dir.cyan()
+        );
 
         // Scan every .py file
         for entry in WalkDir::new(plugin_dir)
@@ -49,27 +83,45 @@ impl PluginManager {
             let path = entry.path();
             match self.load_plugin(path) {
                 Ok(plugin_name) => {
-                    println!("  {} {}", "✓ Loaded plugin:".bright_green(), plugin_name.bright_cyan());
+                    println!(
+                        "  {} {}",
+                        "✓ Loaded plugin:".bright_green(),
+                        plugin_name.bright_cyan()
+                    );
                 }
                 Err(e) => {
-                    println!("  {} {} - {}", "✗ Failed to load:".bright_red(), 
-                           path.display(), e.to_string().red());
+                    println!(
+                        "  {} {} - {}",
+                        "✗ Failed to load:".bright_red(),
+                        path.display(),
+                        e.to_string().red()
+                    );
+                    append_plugin_error(
+                        path.file_stem()
+                            .and_then(|name| name.to_str())
+                            .unwrap_or("unknown"),
+                        "load",
+                        &e.to_string(),
+                    );
                 }
             }
         }
 
-        println!("{} {} {} {} {}", "Loaded".bright_green().bold(),
-                 self.activated_plugins.len().to_string().bright_yellow(),
-                 "plugin(s) successfully.".bright_green().bold(),
-                 self.inactivated_plugins.len().to_string().yellow(),
-                 "plugin(s) ignored.".green()
+        println!(
+            "{} {} {} {} {}",
+            "Loaded".bright_green().bold(),
+            self.activated_plugins.len().to_string().bright_yellow(),
+            "plugin(s) successfully.".bright_green().bold(),
+            self.inactivated_plugins.len().to_string().yellow(),
+            "plugin(s) ignored.".green()
         );
         Ok(())
     }
 
     // Load single plugin
     fn load_plugin(&mut self, path: &Path) -> PyResult<String> {
-        let plugin_name = path.file_stem()
+        let plugin_name = path
+            .file_stem()
             .and_then(|name| name.to_str())
             .unwrap_or("unknown")
             .to_string();
@@ -82,7 +134,9 @@ impl PluginManager {
             let module = PyModule::from_code(
                 py,
                 CString::new(&*code).unwrap().as_c_str(),
-                CString::new(path.to_str().unwrap_or(&plugin_name)).unwrap().as_c_str(),
+                CString::new(path.to_str().unwrap_or(&plugin_name))
+                    .unwrap()
+                    .as_c_str(),
                 CString::new(&*plugin_name).unwrap().as_c_str(),
             )?;
 
@@ -117,9 +171,12 @@ impl PluginManager {
             return Ok(());
         }
 
-        println!("{} {} {}", "Triggering hook:".bright_magenta().bold(), 
-               hook_name.bright_yellow(), 
-               format!("for {} plugin(s)", self.activated_plugins.len()).bright_magenta());
+        println!(
+            "{} {} {}",
+            "Triggering hook:".bright_magenta().bold(),
+            hook_name.bright_yellow(),
+            format!("for {} plugin(s)", self.activated_plugins.len()).bright_magenta()
+        );
 
         // Call plugin hooks without blocking the caller:
         // - If a plugin sets `_RUN_IN_SUBPROCESS = 1` (in its module), spawn
@@ -158,22 +215,44 @@ impl PluginManager {
                             mod['{}']({{}})\n    \
                         except Exception as e:\n        \
                             import sys, traceback; traceback.print_exc(file=sys.stderr)",
-                    plugin_path.display(), hook, hook
+                    plugin_path.display(),
+                    hook,
+                    hook
                 );
 
-                match Command::new("python").arg("-c").arg(python_code).spawn() {
-                    Ok(_child) => {
-                        println!("  {} {} {}", "✓".bright_green(),
-                                 plugin_name.bright_cyan(),
-                                 format!("spawned {} in subprocess", hook).white());
+                println!(
+                    "  {} {} {}",
+                    "✓".bright_green(),
+                    plugin_name.bright_cyan(),
+                    format!("spawned {} in subprocess", hook).white()
+                );
+
+                tokio::spawn(async move {
+                    match Command::new("python")
+                        .arg("-c")
+                        .arg(python_code)
+                        .output()
+                        .await
+                    {
+                        Ok(output) => {
+                            if !output.status.success() || !output.stderr.is_empty() {
+                                let stderr = String::from_utf8_lossy(&output.stderr);
+                                append_plugin_error(
+                                    &plugin_name,
+                                    &format!("subprocess {}", hook),
+                                    stderr.trim(),
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            append_plugin_error(
+                                &plugin_name,
+                                &format!("spawn {}", hook),
+                                &e.to_string(),
+                            );
+                        }
                     }
-                    Err(e) => {
-                        println!("  {} {} {} - {}", "✗".bright_red(),
-                                 plugin_name.bright_cyan(),
-                                 format!("failed to spawn {}", hook).white(),
-                                 e.to_string().red());
-                    }
-                }
+                });
                 continue;
             }
 
@@ -184,27 +263,39 @@ impl PluginManager {
                     let py_context = PyDict::new(py);
                     py_context.set_item("message", &ctx.message).unwrap();
                     py_context.set_item("timestamp", &ctx.timestamp).unwrap();
-                    py_context.set_item("work_duration", ctx.work_duration).unwrap();
+                    py_context
+                        .set_item("work_duration", ctx.work_duration)
+                        .unwrap();
 
                     if let Ok(module) = PyModule::import(py, &plugin_name) {
                         if let Ok(hook_func) = module.getattr(hook.as_str()) {
                             match hook_func.call((py_context.clone(),), None) {
                                 Ok(_) => {
-                                    println!("  {} {} {}", "✓".bright_green(),
-                                             plugin_name.bright_cyan(),
-                                             format!("executed {}", hook).white());
+                                    println!(
+                                        "  {} {} {}",
+                                        "✓".bright_green(),
+                                        plugin_name.bright_cyan(),
+                                        format!("executed {}", hook).white()
+                                    );
                                 }
                                 Err(e) => {
-                                    println!("  {} {} {} - {}", "✗".bright_red(),
-                                             plugin_name.bright_cyan(),
-                                             format!("failed {}", hook).white(),
-                                             e.to_string().red());
+                                    println!(
+                                        "  {} {} {} - {}",
+                                        "✗".bright_red(),
+                                        plugin_name.bright_cyan(),
+                                        format!("failed {}", hook).white(),
+                                        e.to_string().red()
+                                    );
+                                    append_plugin_error(&plugin_name, &hook, &e.to_string());
                                 }
                             }
                         } else {
-                            println!("  {} {} {}", "○".bright_black(),
-                                     plugin_name.bright_cyan(),
-                                     format!("no {} hook", hook).bright_black());
+                            println!(
+                                "  {} {} {}",
+                                "○".bright_black(),
+                                plugin_name.bright_cyan(),
+                                format!("no {} hook", hook).bright_black()
+                            );
                         }
                     }
                 });
@@ -213,7 +304,7 @@ impl PluginManager {
 
         Ok(())
     }
-    
+
     // Check if plugins shouldn't be loaded when initializing
     fn should_ignore_plugin(code: &str) -> bool {
         Self::should_ignore_plugin_regex(code)
@@ -240,7 +331,7 @@ impl PluginManager {
     pub fn plugin_count(&self) -> usize {
         self.inactivated_plugins.len() + self.activated_plugins.len()
     }
-    
+
     pub fn list_plugins(&self) {
         if self.inactivated_plugins.is_empty() && self.activated_plugins.is_empty() {
             println!("{}", "No plugins loaded".yellow());
@@ -257,8 +348,11 @@ impl PluginManager {
 
         println!("{}", "Loaded plugins:".bright_green().bold());
         for (index, plugin) in all_plugins.into_iter().enumerate() {
-            println!("  {}. {}", (index + 1).to_string().bright_yellow(), 
-                   plugin.name.bright_cyan());
+            println!(
+                "  {}. {}",
+                (index + 1).to_string().bright_yellow(),
+                plugin.name.bright_cyan()
+            );
         }
     }
 }

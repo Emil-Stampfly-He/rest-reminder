@@ -35,6 +35,7 @@
             <button class="tab is-active" type="button" data-panel="rest-panel" data-i18n="tabRest">Start monitoring</button>
             <button class="tab" type="button" data-panel="count-panel" data-i18n="tabCount">Work statistics</button>
             <button class="tab" type="button" data-panel="plot-panel" data-i18n="tabPlot">Generate chart</button>
+            <button class="tab" type="button" data-panel="plugin-panel" data-i18n="tabPlugins">Plugins</button>
         </nav>
 
         <section class="panel is-active" id="rest-panel" aria-labelledby="rest-title">
@@ -259,6 +260,42 @@
                     <h3 data-i18n="plotPreviewTitle">Chart preview</h3>
                 </div>
                 <img data-plot-preview-image alt="Work trend chart preview" data-i18n-alt="plotPreviewAlt">
+            </div>
+        </section>
+
+        <section class="panel" id="plugin-panel" aria-labelledby="plugin-title">
+            <div class="panel-header">
+                <h2 id="plugin-title" data-i18n="pluginTitle">Plugin management</h2>
+                <p data-i18n="pluginDescription">View installed Python plugins, enable or disable them, generate templates, and inspect recent plugin errors.</p>
+            </div>
+            <form class="form-grid" data-endpoint="/plugins/generate" data-kind="plugin-generate">
+                <label>
+                    <span data-i18n="pluginName">Plugin file name</span>
+                    <input name="name" type="text" placeholder="Example: my_plugin" data-i18n-placeholder="pluginNamePlaceholder" pattern="[A-Za-z0-9_-]+" required>
+                </label>
+                <div class="actions">
+                    <button type="submit" data-i18n="generatePlugin">Generate template</button>
+                    <button class="secondary-action" type="button" data-refresh-plugins data-i18n="refreshPlugins">Refresh plugins</button>
+                    <output class="status" aria-live="polite"></output>
+                </div>
+            </form>
+
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h3 data-i18n="installedPlugins">Installed plugins</h3>
+                </div>
+                <div class="plugin-list" data-plugin-list>
+                    <p class="selected-empty" data-i18n="loadingPlugins">Loading plugins...</p>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h3 data-i18n="pluginErrors">Recent plugin errors</h3>
+                </div>
+                <ul class="log-preview" data-plugin-errors>
+                    <li data-i18n="loadingPlugins">Loading plugins...</li>
+                </ul>
             </div>
         </section>
     </main>

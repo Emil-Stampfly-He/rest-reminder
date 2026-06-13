@@ -13,6 +13,7 @@ const translations = {
     tabRest: 'Start monitoring',
     tabCount: 'Work statistics',
     tabPlot: 'Generate chart',
+    tabPlugins: 'Plugins',
     restTitle: 'Start rest reminders',
     restDescription: 'Detect selected apps, show a rest reminder after the work threshold, and write sessions to the log.',
     logDirectory: 'Log directory',
@@ -83,6 +84,26 @@ const translations = {
     logPreviewNoEntries: 'No log entries found.',
     plotPreviewTitle: 'Chart preview',
     plotPreviewAlt: 'Work trend chart preview',
+    pluginTitle: 'Plugin management',
+    pluginDescription: 'View installed Python plugins, enable or disable them, generate templates, and inspect recent plugin errors.',
+    pluginName: 'Plugin file name',
+    pluginNamePlaceholder: 'Example: my_plugin',
+    generatePlugin: 'Generate template',
+    refreshPlugins: 'Refresh plugins',
+    installedPlugins: 'Installed plugins',
+    pluginErrors: 'Recent plugin errors',
+    loadingPlugins: 'Loading plugins...',
+    noPlugins: 'No plugins found.',
+    noPluginErrors: 'No plugin errors recorded.',
+    pluginEnabled: 'Enabled',
+    pluginDisabled: 'Disabled',
+    enablePlugin: 'Enable',
+    disablePlugin: 'Disable',
+    pluginHooks: 'Hooks',
+    pluginNoHooks: 'No standard hooks',
+    pluginSubprocess: 'Subprocess',
+    pluginGenerated: ({ path }) => `Plugin template generated: ${path || 'plugins directory'}`,
+    pluginUpdated: 'Plugin updated.',
     submitting: 'Submitting...',
     openingPicker: 'Opening picker...',
     pathSelected: 'Path selected.',
@@ -102,6 +123,7 @@ const translations = {
     tabRest: '开始监控',
     tabCount: '统计时长',
     tabPlot: '生成图表',
+    tabPlugins: '插件管理',
     restTitle: '开始休息提醒',
     restDescription: '检测指定应用，连续工作达到阈值后弹出休息提醒，并写入日志。',
     logDirectory: '日志目录',
@@ -172,6 +194,26 @@ const translations = {
     logPreviewNoEntries: '没有找到日志记录。',
     plotPreviewTitle: '图表预览',
     plotPreviewAlt: '工作趋势图预览',
+    pluginTitle: '插件管理',
+    pluginDescription: '查看已安装的 Python 插件，启用或禁用插件，生成模板，并检查最近的插件错误。',
+    pluginName: '插件文件名',
+    pluginNamePlaceholder: '例如 my_plugin',
+    generatePlugin: '生成模板',
+    refreshPlugins: '刷新插件',
+    installedPlugins: '已安装插件',
+    pluginErrors: '最近插件错误',
+    loadingPlugins: '正在加载插件...',
+    noPlugins: '没有找到插件。',
+    noPluginErrors: '没有记录插件错误。',
+    pluginEnabled: '已启用',
+    pluginDisabled: '已禁用',
+    enablePlugin: '启用',
+    disablePlugin: '禁用',
+    pluginHooks: '钩子',
+    pluginNoHooks: '没有标准钩子',
+    pluginSubprocess: '子进程',
+    pluginGenerated: ({ path }) => `插件模板已生成：${path || 'plugins 目录'}`,
+    pluginUpdated: '插件已更新。',
     submitting: '正在提交...',
     openingPicker: '正在打开选择器...',
     pathSelected: '路径已选择。',
@@ -569,6 +611,10 @@ const readForm = (form) => {
     data.task = data.task?.trim() || null;
   }
 
+  if (kind === 'plugin-generate') {
+    data.name = data.name?.trim() || '';
+  }
+
   return data;
 };
 
@@ -654,6 +700,10 @@ const resultMessage = (kind, payload) => {
     return t('plotResult')({ location: payload.plot_location });
   }
 
+  if (kind === 'plugin-generate') {
+    return t('pluginGenerated')({ path: payload.path });
+  }
+
   return t('restResult');
 };
 
@@ -691,6 +741,10 @@ async function submitForm(form) {
     saveConfig();
     if (kind === 'rest') {
       await refreshMonitorStatus();
+    }
+    if (kind === 'plugin-generate') {
+      form.reset();
+      await refreshPlugins();
     }
 
     setStatus(form, resultMessage(kind, payload), 'success');
@@ -993,6 +1047,166 @@ function showPlotPreview(dataUrl) {
   preview.hidden = false;
 }
 
+function renderPluginErrors(errors) {
+  const list = document.querySelector('[data-plugin-errors]');
+  if (!list) return;
+
+  list.innerHTML = '';
+  const entries = Array.isArray(errors) ? errors : [];
+  if (!entries.length) {
+    const item = document.createElement('li');
+    item.textContent = t('noPluginErrors');
+    list.appendChild(item);
+    return;
+  }
+
+  entries.forEach((error) => {
+    const item = document.createElement('li');
+    item.textContent = error;
+    list.appendChild(item);
+  });
+}
+
+function renderPlugins(plugins) {
+  const container = document.querySelector('[data-plugin-list]');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const items = Array.isArray(plugins) ? plugins : [];
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'selected-empty';
+    empty.textContent = t('noPlugins');
+    container.appendChild(empty);
+    return;
+  }
+
+  items.forEach((plugin) => {
+    const card = document.createElement('article');
+    card.className = 'plugin-card';
+
+    const body = document.createElement('div');
+    const title = document.createElement('h4');
+    title.textContent = plugin.name || plugin.file_name;
+
+    const meta = document.createElement('p');
+    meta.className = 'plugin-meta';
+    const state = plugin.enabled ? t('pluginEnabled') : t('pluginDisabled');
+    const details = [plugin.file_name ? `${plugin.file_name}.py` : '', plugin.version, plugin.author]
+      .filter(Boolean)
+      .join(' · ');
+    meta.textContent = details ? `${state} · ${details}` : state;
+
+    const description = document.createElement('p');
+    description.className = 'plugin-description';
+    description.textContent = plugin.description || plugin.path || '';
+
+    const hooks = document.createElement('div');
+    hooks.className = 'plugin-hooks';
+
+    const stateChip = document.createElement('span');
+    stateChip.className = `plugin-state${plugin.enabled ? '' : ' is-disabled'}`;
+    stateChip.textContent = state;
+    hooks.appendChild(stateChip);
+
+    if (plugin.run_in_subprocess) {
+      const subprocess = document.createElement('span');
+      subprocess.className = 'plugin-hook';
+      subprocess.textContent = t('pluginSubprocess');
+      hooks.appendChild(subprocess);
+    }
+
+    const pluginHooks = Array.isArray(plugin.hooks) ? plugin.hooks : [];
+    if (pluginHooks.length) {
+      pluginHooks.forEach((hook) => {
+        const hookChip = document.createElement('span');
+        hookChip.className = 'plugin-hook';
+        hookChip.textContent = hook;
+        hooks.appendChild(hookChip);
+      });
+    } else {
+      const noHooks = document.createElement('span');
+      noHooks.className = 'plugin-hook';
+      noHooks.textContent = t('pluginNoHooks');
+      hooks.appendChild(noHooks);
+    }
+
+    body.append(title, meta);
+    if (description.textContent) body.appendChild(description);
+    body.appendChild(hooks);
+
+    if (plugin.last_error) {
+      const error = document.createElement('p');
+      error.className = 'plugin-error';
+      error.textContent = plugin.last_error;
+      body.appendChild(error);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'plugin-actions';
+    const toggle = document.createElement('button');
+    toggle.className = 'secondary-action';
+    toggle.type = 'button';
+    toggle.textContent = plugin.enabled ? t('disablePlugin') : t('enablePlugin');
+    toggle.addEventListener('click', () => togglePlugin(plugin.file_name, !plugin.enabled, toggle));
+    actions.appendChild(toggle);
+
+    card.append(body, actions);
+    container.appendChild(card);
+  });
+}
+
+async function refreshPlugins() {
+  const container = document.querySelector('[data-plugin-list]');
+  if (container) {
+    container.innerHTML = `<p class="selected-empty">${t('loadingPlugins')}</p>`;
+  }
+
+  try {
+    const response = await fetch('/plugins');
+    const text = await response.text();
+    const payload = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(payload.error || `${t('requestFailed')}: ${response.status}`);
+    }
+
+    renderPlugins(payload.plugins || []);
+    renderPluginErrors(payload.errors || []);
+  } catch (error) {
+    renderPlugins([]);
+    renderPluginErrors([error.message || t('requestFailed')]);
+  }
+}
+
+async function togglePlugin(fileName, enabled, button) {
+  if (!fileName) return;
+  button.disabled = true;
+
+  const form = document.querySelector('#plugin-panel form');
+  if (form) setStatus(form, t('submitting'));
+
+  try {
+    const action = enabled ? 'enable' : 'disable';
+    const response = await fetch(`/plugins/${encodeURIComponent(fileName)}/${action}`, {
+      method: 'POST',
+    });
+    const text = await response.text();
+    const payload = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(payload.error || `${t('requestFailed')}: ${response.status}`);
+    }
+
+    if (form) setStatus(form, t('pluginUpdated'), 'success');
+    await refreshPlugins();
+  } catch (error) {
+    if (form) setStatus(form, error.message || t('requestFailed'), 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function openPathPicker(button) {
   const endpoint = pickerEndpoints[button.dataset.picker];
   const control = button.closest('.path-control');
@@ -1161,6 +1375,11 @@ function initPreviews() {
   document.querySelector('[data-log-preview]')?.addEventListener('click', refreshLogPreview);
 }
 
+function initPlugins() {
+  document.querySelector('[data-refresh-plugins]')?.addEventListener('click', refreshPlugins);
+  refreshPlugins();
+}
+
 initTabs();
 initCountModes();
 initTheme();
@@ -1170,4 +1389,5 @@ initPathPickers();
 initProcessPicker();
 initMonitorControls();
 initPreviews();
+initPlugins();
 initForms();

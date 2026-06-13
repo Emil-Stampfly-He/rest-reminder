@@ -92,7 +92,9 @@ pub async fn execute_command(cmd: Command) {
         }
         Command::Gen { name } => {
             println!("{}", "Generating plugin template...".bright_yellow().bold());
-            generate_plugin_template(name.as_str()).await;
+            generate_plugin_template(name.as_str())
+                .await
+                .expect("Failed to generate plugin template.");
         }
         Command::Web {} => {
             println!("{}", "Starting web server...".bright_yellow().bold());

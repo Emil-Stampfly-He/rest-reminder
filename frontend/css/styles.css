@@ -509,6 +509,71 @@ input:focus {
     overflow-wrap: anywhere;
 }
 
+.plugin-list {
+    display: grid;
+    gap: 12px;
+}
+
+.plugin-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--surface-muted);
+}
+
+.plugin-card h4 {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+
+.plugin-meta,
+.plugin-description,
+.plugin-error {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.plugin-hooks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.plugin-hook,
+.plugin-state {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    border-radius: 8px;
+    padding: 3px 8px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.plugin-state.is-disabled {
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--danger);
+}
+
+.plugin-error {
+    margin-top: 10px;
+    color: var(--danger);
+}
+
+.plugin-actions {
+    display: flex;
+    align-items: start;
+    justify-content: end;
+}
+
 .plot-preview img {
     width: 100%;
     max-height: 520px;
@@ -543,7 +608,7 @@ input:focus {
     }
 
     .tabs {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tab {
@@ -574,5 +639,13 @@ input:focus {
     .preview-header {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .plugin-card {
+        grid-template-columns: 1fr;
+    }
+
+    .plugin-actions {
+        justify-content: start;
     }
 }
