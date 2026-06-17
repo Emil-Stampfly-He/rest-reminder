@@ -3,3 +3,4 @@
 /Plan.txt
 /rest_reminder_history.txt
 __pycache__/
+plugins/plugin_errors.log

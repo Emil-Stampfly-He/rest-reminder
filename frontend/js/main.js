@@ -522,6 +522,10 @@ const processState = {
   dropdownOpen: false,
 };
 
+const monitorState = {
+  running: false,
+};
+
 const preferredProcessTerms = [
   'spotify',
   'rustrover',
@@ -751,7 +755,7 @@ async function submitForm(form) {
   } catch (error) {
     setStatus(form, error.message || t('requestFailed'), 'error');
   } finally {
-    button.disabled = false;
+    button.disabled = kind === 'rest' ? monitorState.running : false;
   }
 }
 
@@ -772,9 +776,13 @@ function renderMonitorStatus(status) {
   const paused = document.querySelector('[data-monitor-paused]');
   const apps = document.querySelector('[data-monitor-apps]');
   const task = document.querySelector('[data-monitor-task]');
+  const startButton = document.querySelector('#rest-panel form button[type="submit"]');
   const stopButton = document.querySelector('[data-stop-monitor]');
   const pauseButton = document.querySelector('[data-pause-monitor]');
   const resumeButton = document.querySelector('[data-resume-monitor]');
+  const statusApps = Array.isArray(status.app_list) ? status.app_list : [];
+
+  monitorState.running = Boolean(status.running);
 
   if (state) {
     state.textContent = status.running ? t('monitorRunning') : t('monitorStopped');
@@ -790,6 +798,14 @@ function renderMonitorStatus(status) {
   }
   if (task) {
     task.textContent = status.task || t('noneValue');
+  }
+  if (status.running && !sameProcessList(processState.selected, statusApps)) {
+    processState.selected = [...statusApps];
+    renderSelectedProcesses();
+  }
+  updateProcessPickerDisabled();
+  if (startButton) {
+    startButton.disabled = status.running;
   }
   if (stopButton) {
     stopButton.disabled = !status.running;
@@ -862,6 +878,31 @@ function syncSelectedProcesses() {
   }
 }
 
+function sameProcessList(left, right) {
+  if (left.length !== right.length) return false;
+  return left.every((item, index) => item === right[index]);
+}
+
+function updateProcessPickerDisabled() {
+  const input = document.querySelector('.process-search');
+  const refreshButton = document.querySelector('[data-refresh-processes]');
+  const suggestionContainer = document.querySelector('[data-process-suggestions]');
+
+  if (input) {
+    input.disabled = monitorState.running;
+  }
+  if (refreshButton) {
+    refreshButton.disabled = monitorState.running;
+  }
+  if (suggestionContainer && monitorState.running) {
+    processState.dropdownOpen = false;
+    suggestionContainer.classList.remove('is-open');
+  }
+  document.querySelectorAll('[data-remove-process]').forEach((button) => {
+    button.disabled = monitorState.running;
+  });
+}
+
 function renderSelectedProcesses() {
   const container = document.querySelector('[data-selected-processes]');
   if (!container) return;
@@ -887,9 +928,12 @@ function renderSelectedProcesses() {
 
     const remove = document.createElement('button');
     remove.type = 'button';
+    remove.dataset.removeProcess = 'true';
     remove.setAttribute('aria-label', `${t('removeApp')} ${name}`);
     remove.textContent = '×';
+    remove.disabled = monitorState.running;
     remove.addEventListener('click', () => {
+      if (monitorState.running) return;
       processState.selected = processState.selected.filter((item) => item !== name);
       renderSelectedProcesses();
       renderProcessSuggestions();
@@ -916,6 +960,7 @@ function processRank(name, query) {
 }
 
 function addProcess(name) {
+  if (monitorState.running) return;
   const normalized = name.trim();
   if (!normalized) return;
   if (!processState.selected.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
@@ -932,6 +977,11 @@ function renderProcessSuggestions(query = document.querySelector('.process-searc
   if (!container) return;
 
   container.innerHTML = '';
+  if (monitorState.running) {
+    processState.dropdownOpen = false;
+    container.classList.remove('is-open');
+    return;
+  }
   container.classList.toggle('is-open', processState.dropdownOpen);
   const normalizedQuery = query.trim().toLowerCase();
   const selected = new Set(processState.selected.map((item) => item.toLowerCase()));
