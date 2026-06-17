@@ -2,3 +2,4 @@
 /.idea
 /Plan.txt
 /rest_reminder_history.txt
+__pycache__/

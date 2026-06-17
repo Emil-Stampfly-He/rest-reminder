@@ -3,28 +3,29 @@ Uncomment the code below for enabling plugin
 """
 
 _SHOULD_IGNORE = 1
+_RUN_IN_SUBPROCESS = 1
 
 import tkinter as tk
 from tkinter import messagebox
 import random
 
 class SnakeGame:
+    GAME_WIDTH = 700
+    GAME_HEIGHT = 700
+    SPEED = 100
+    SPACE_SIZE = 50
+    BODY_PARTS = 3
+    SNAKE_COLOR = "#2E7D32"
+    FOOD_COLOR = "#D32F2F"
+    BACKGROUND_COLOR = "#FAFAFA"
+
     def __init__(self, root):
         self.root = root
         self.root.title("Snake Game")
         self.root.resizable(False, False)
 
-        # Game params
-        self.GAME_WIDTH = 700
-        self.GAME_HEIGHT = 700
-        self.SPEED = 100
-        self.SPACE_SIZE = 50
-        self.BODY_PARTS = 3
-        self.SNAKE_COLOR = "#00FF00"
-        self.FOOD_COLOR = "#FF0000"
-        self.BACKGROUND_COLOR = "#FFFFFF"
-
         self.direction = 'right'
+        self.direction_changed = False
         self.score = 0
 
         # UI
@@ -40,6 +41,7 @@ class SnakeGame:
         self.root.bind('<Down>', lambda event: self.update_direction('down'))
         self.root.bind('<Left>', lambda event: self.update_direction('left'))
         self.root.bind('<Right>', lambda event: self.update_direction('right'))
+        self.root.focus_set()
 
         self.snake_position = []
         self.snake_squares = []
@@ -54,6 +56,7 @@ class SnakeGame:
         self.snake_squares = []
         self.score = 0
         self.direction = 'right'
+        self.direction_changed = False
         self.label.config(text=f"Score: {self.score}")
 
         for i in range(self.BODY_PARTS):
@@ -63,22 +66,31 @@ class SnakeGame:
             square = self.canvas.create_rectangle(x, y, x+self.SPACE_SIZE, y+self.SPACE_SIZE, fill=self.SNAKE_COLOR, tags="snake")
             self.snake_squares.append(square)
 
-        self.spawn_food()
-        self.move()
+        if self.spawn_food():
+            self.move()
 
     def spawn_food(self):
         if self.food:
             self.canvas.delete(self.food)
 
-        # Ensure food doesn't spawn on snake
-        while True:
-            x = random.randint(0, (self.GAME_WIDTH // self.SPACE_SIZE) - 1) * self.SPACE_SIZE
-            y = random.randint(0, (self.GAME_HEIGHT // self.SPACE_SIZE) - 1) * self.SPACE_SIZE
-            self.food_position = [x, y]
-            if self.food_position not in self.snake_position:
-                break
+        open_positions = [
+            [x, y]
+            for x in range(0, self.GAME_WIDTH, self.SPACE_SIZE)
+            for y in range(0, self.GAME_HEIGHT, self.SPACE_SIZE)
+            if [x, y] not in self.snake_position
+        ]
+
+        if not open_positions:
+            self.food = None
+            self.food_position = None
+            self.game_over("You win!")
+            return False
+
+        x, y = random.choice(open_positions)
+        self.food_position = [x, y]
 
         self.food = self.canvas.create_oval(x, y, x+self.SPACE_SIZE, y+self.SPACE_SIZE, fill=self.FOOD_COLOR, tags="food")
+        return True
 
     def move(self):
         head = self.snake_position[0].copy()
@@ -100,14 +112,17 @@ class SnakeGame:
         if head == self.food_position:
             self.score += 1
             self.label.config(text=f"Score: {self.score}")
-            self.spawn_food()
+            if not self.spawn_food():
+                return
         else:
             self.snake_position.pop()
             self.canvas.delete(self.snake_squares.pop())
 
+        self.direction_changed = False
+
         # Check if game over
         if self.check_collisions():
-            self.game_over()
+            self.game_over("Game Over")
         else:
             self.root.after(self.SPEED, self.move)
 
@@ -125,9 +140,9 @@ class SnakeGame:
 
         return False
 
-    def game_over(self):
+    def game_over(self, title):
         self.canvas.delete("all")
-        response = messagebox.askyesno("Game Over", f"Final Score: {self.score}\nWould you like to retry?")
+        response = messagebox.askyesno(title, f"Final Score: {self.score}\nWould you like to retry?")
         if response:
             self.canvas.delete("all")  # Clear canvas again for safety
             self.start_game()  # Restart the game
@@ -135,11 +150,15 @@ class SnakeGame:
             self.root.destroy()  # Quit the game
 
     def update_direction(self, new_direction):
+        if self.direction_changed:
+            return
+
         if (new_direction == 'up' and self.direction != 'down') or \
            (new_direction == 'down' and self.direction != 'up') or \
            (new_direction == 'left' and self.direction != 'right') or \
            (new_direction == 'right' and self.direction != 'left'):
             self.direction = new_direction
+            self.direction_changed = True
 
 def on_break_reminder(_context):
     root = tk.Tk()
