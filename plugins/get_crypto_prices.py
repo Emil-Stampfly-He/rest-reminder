@@ -1,5 +1,4 @@
-_SHOULD_IGNORE = 0
-
+_SHOULD_IGNORE = 1
 import requests
 import tkinter as tk
 from tkinter import messagebox

@@ -79,6 +79,9 @@ impl PluginManager {
 
     // Load all Python plugins in specified directory
     pub fn load_plugins(&mut self, plugin_dir: &str) -> PyResult<()> {
+        self.inactivated_plugins.clear();
+        self.activated_plugins.clear();
+
         if !Path::new(plugin_dir).exists() {
             println!(
                 "{} {}",

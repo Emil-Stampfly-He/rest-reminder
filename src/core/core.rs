@@ -107,9 +107,7 @@ pub async fn run_rest_reminder(
 
                     // Trigger work start hook
                     let work_start_context = PluginContext::new("Work session started", 0);
-                    if let Err(e) = plugin_manager.trigger_hook("on_work_start", &work_start_context) {
-                        println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
-                    }
+                    trigger_current_plugins(&mut plugin_manager, "on_work_start", &work_start_context);
 
                     let start_time = Instant::now();
 
@@ -126,9 +124,7 @@ pub async fn run_rest_reminder(
 
                             // Trigger break hook
                             let break_context = PluginContext::new("Time to take a break!", time);
-                            if let Err(e) = plugin_manager.trigger_hook("on_break_reminder", &break_context) {
-                                println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
-                            }
+                            trigger_current_plugins(&mut plugin_manager, "on_break_reminder", &break_context);
 
                             pop_up(time).await;
                             log(start, Local::now(), &mut log_location, &app, task.as_deref());
@@ -234,9 +230,7 @@ pub async fn run_rest_reminder_dynamic(
                     println!("{}", "Process(es) detected, you are about to start working...".bright_green().bold());
 
                     let work_start_context = PluginContext::new("Work session started", 0);
-                    if let Err(e) = plugin_manager.trigger_hook("on_work_start", &work_start_context) {
-                        println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
-                    }
+                    trigger_current_plugins(&mut plugin_manager, "on_work_start", &work_start_context);
 
                     let start_time = Instant::now();
                     let work_session_result = monitor_work_session_dynamic(
@@ -258,9 +252,7 @@ pub async fn run_rest_reminder_dynamic(
                             println!("{}", "Process(es) still running, you need a break!".bright_red().bold());
 
                             let break_context = PluginContext::new("Time to take a break!", time);
-                            if let Err(e) = plugin_manager.trigger_hook("on_break_reminder", &break_context) {
-                                println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
-                            }
+                            trigger_current_plugins(&mut plugin_manager, "on_break_reminder", &break_context);
 
                             pop_up(time).await;
                             log(start, Local::now(), &mut log_location, &current_apps, task.as_deref());
@@ -327,6 +319,28 @@ async fn monitor_work_session(
                 }
             }
         }
+    }
+}
+
+fn trigger_current_plugins(
+    plugin_manager: &mut PluginManager,
+    hook_name: &str,
+    context: &PluginContext,
+) {
+    if let Err(e) = plugin_manager.load_plugins("plugins") {
+        println!(
+            "{} {}",
+            "Failed to reload plugins:".bright_red().bold(),
+            e.to_string().red()
+        );
+    }
+
+    if let Err(e) = plugin_manager.trigger_hook(hook_name, context) {
+        println!(
+            "{} {}",
+            "Plugin hook error:".bright_red(),
+            e.to_string().red()
+        );
     }
 }
 
