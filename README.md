@@ -287,6 +287,12 @@ On Windows, use:
 
 Python plugins live under [`plugins/`](plugins/).
 
+Install optional Python dependencies for the bundled example plugins with:
+
+```bash
+pip install -r requirements.txt
+```
+
 Supported hooks:
 
 - `on_init`

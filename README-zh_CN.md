@@ -287,6 +287,12 @@ Windows 下使用：
 
 Python 插件放在 [`plugins/`](plugins/) 目录中。
 
+安装内置示例插件所需的可选 Python 依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
 支持的钩子：
 
 - `on_init`
