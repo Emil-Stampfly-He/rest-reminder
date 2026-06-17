@@ -3,20 +3,21 @@ use crate::statistic::plotter::plot;
 use actix_web::{HttpResponse, Responder, post, web};
 use base64::{Engine as _, engine::general_purpose};
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::fs;
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone)]
 struct PlotRequest {
     log_path: String,
-    plot_location: String,
+    plot_location: Option<String>,
     start_date: String,
     end_date: String,
 }
 
 #[derive(Serialize)]
 struct PlotResponse {
-    plot_location: String,
+    plot_location: Option<String>,
     image_data_url: Option<String>,
 }
 
@@ -28,7 +29,15 @@ struct ErrorResponse {
 #[post("/plot")]
 async fn plot_work_trend(req_body: web::Json<PlotRequest>) -> impl Responder {
     let log_path = PathBuf::from(&req_body.log_path.as_str());
-    let plot_location = PathBuf::from(&req_body.plot_location.as_str());
+    let requested_plot_location = req_body
+        .plot_location
+        .as_ref()
+        .map(|location| location.trim())
+        .filter(|location| !location.is_empty())
+        .map(PathBuf::from);
+    let plot_location = requested_plot_location
+        .clone()
+        .unwrap_or_else(temp_plot_path);
     let start_time = match parse_datetime_local_day(&req_body.start_date.as_str()) {
         Ok(t) => t,
         Err(_) => {
@@ -61,9 +70,14 @@ async fn plot_work_trend(req_body: web::Json<PlotRequest>) -> impl Responder {
                     general_purpose::STANDARD.encode(bytes)
                 )
             });
+            if requested_plot_location.is_none() {
+                let _ = fs::remove_file(&plot_location);
+            }
 
             HttpResponse::Ok().json(PlotResponse {
-                plot_location: plot_location.to_string_lossy().to_string(),
+                plot_location: requested_plot_location
+                    .as_ref()
+                    .map(|location| location.to_string_lossy().to_string()),
                 image_data_url,
             })
         }
@@ -71,4 +85,12 @@ async fn plot_work_trend(req_body: web::Json<PlotRequest>) -> impl Responder {
             error: "Failed to plot work trend".to_string(),
         }),
     }
+}
+
+fn temp_plot_path() -> PathBuf {
+    env::temp_dir().join(format!(
+        "rest-reminder-work-trend-{}-{}.png",
+        std::process::id(),
+        chrono::Local::now().timestamp_millis()
+    ))
 }

@@ -6,8 +6,9 @@ use pyo3::types::{PyDict, PyModule};
 use regex::Regex;
 use std::ffi::CString;
 use std::fs::OpenOptions;
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
+use std::process::Output;
 use tokio::process::Command;
 use walkdir::WalkDir;
 
@@ -35,6 +36,25 @@ pub fn append_plugin_error(plugin_name: &str, event: &str, error: &str) {
         event,
         error
     );
+}
+
+async fn run_python_code(python_code: &str) -> std::io::Result<Output> {
+    match Command::new("python")
+        .arg("-c")
+        .arg(python_code)
+        .output()
+        .await
+    {
+        Ok(output) => Ok(output),
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            Command::new("python3")
+                .arg("-c")
+                .arg(python_code)
+                .output()
+                .await
+        }
+        Err(error) => Err(error),
+    }
 }
 
 pub struct PluginManager {
@@ -228,12 +248,7 @@ impl PluginManager {
                 );
 
                 tokio::spawn(async move {
-                    match Command::new("python")
-                        .arg("-c")
-                        .arg(python_code)
-                        .output()
-                        .await
-                    {
+                    match run_python_code(&python_code).await {
                         Ok(output) => {
                             if !output.status.success() || !output.stderr.is_empty() {
                                 let stderr = String::from_utf8_lossy(&output.stderr);

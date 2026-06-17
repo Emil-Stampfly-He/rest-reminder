@@ -5,7 +5,7 @@ Set _RUN_IN_SUBPROCESS = 1 if you wish this plugin to be run in a subprocess
     that won't block the main process. Change it to 0 is STRONGLY UNRECOMMENDED as it
     is very likely resulting in bugs unless you know clearly what you're doing.
 """
-_SHOULD_IGNORE = 0
+_SHOULD_IGNORE = 1
 _RUN_IN_SUBPROCESS = 1
 
 # Uncomment any wanted hooks or delete any unwanted hooks.

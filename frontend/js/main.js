@@ -73,7 +73,7 @@ const translations = {
     taskSummaryEmpty: 'No task sessions found.',
     taskSummaryLine: ({ task, formatted, seconds }) => `${task}: ${formatted} (${seconds} seconds)`,
     plotTitle: 'Generate work trend chart',
-    plotDescription: 'Generate a work trend image for the selected date range from the log file.',
+    plotDescription: 'Generate and preview a work trend image for the selected date range from the log file.',
     plotLocation: 'Chart save location',
     plotLocationPlaceholder: 'Example: ~/Desktop/plot.png',
     browse: 'Browse',
@@ -84,6 +84,7 @@ const translations = {
     logPreviewNoEntries: 'No log entries found.',
     plotPreviewTitle: 'Chart preview',
     plotPreviewAlt: 'Work trend chart preview',
+    saveChart: 'Save chart',
     pluginTitle: 'Plugin management',
     pluginDescription: 'View installed Python plugins, enable or disable them, generate templates, and inspect recent plugin errors.',
     pluginName: 'Plugin file name',
@@ -110,7 +111,7 @@ const translations = {
     pickerCancelled: 'Selection cancelled.',
     requestFailed: 'Request failed',
     countResult: ({ formatted, seconds }) => `Done: ${formatted} (${seconds} seconds)`,
-    plotResult: ({ location }) => `Chart generated: ${location || 'selected location'}`,
+    plotResult: 'Chart generated.',
     restResult: 'Monitoring started. It will keep running in the background.',
     monitorAppElapsed: ({ name, formatted }) => `${name} has been running for ${formatted}`,
     timeUnits: { hour: 'h', minute: 'm', second: 's' },
@@ -184,7 +185,7 @@ const translations = {
     taskSummaryEmpty: '没有找到任务记录。',
     taskSummaryLine: ({ task, formatted, seconds }) => `${task}：${formatted}（${seconds} 秒）`,
     plotTitle: '生成工作趋势图',
-    plotDescription: '根据日志文件生成指定日期范围内的工作趋势图片。',
+    plotDescription: '根据日志文件生成指定日期范围内的工作趋势图片，并直接在网页预览。',
     plotLocation: '图片保存位置',
     plotLocationPlaceholder: '例如 ~/Desktop/plot.png',
     browse: '浏览',
@@ -195,6 +196,7 @@ const translations = {
     logPreviewNoEntries: '没有找到日志记录。',
     plotPreviewTitle: '图表预览',
     plotPreviewAlt: '工作趋势图预览',
+    saveChart: '保存图片',
     pluginTitle: '插件管理',
     pluginDescription: '查看已安装的 Python 插件，启用或禁用插件，生成模板，并检查最近的插件错误。',
     pluginName: '插件文件名',
@@ -221,7 +223,7 @@ const translations = {
     pickerCancelled: '已取消选择。',
     requestFailed: '请求失败',
     countResult: ({ formatted, seconds }) => `统计完成：${formatted}（${seconds} 秒）`,
-    plotResult: ({ location }) => `图表已生成：${location || '指定位置'}`,
+    plotResult: '图表已生成。',
     restResult: '监控已启动。它会在后台持续运行。',
     monitorAppElapsed: ({ name, formatted }) => `${name} 已经运行 ${formatted}`,
     timeUnits: { hour: '小时', minute: '分钟', second: '秒' },
@@ -294,7 +296,7 @@ const translations = {
     taskSummaryEmpty: '找不到任務記錄。',
     taskSummaryLine: ({ task, formatted, seconds }) => `${task}：${formatted}（${seconds} 秒）`,
     plotTitle: '產生工作趨勢圖',
-    plotDescription: '根據日誌檔案，產生指定日期範圍內的工作趨勢圖片。',
+    plotDescription: '根據日誌檔案產生指定日期範圍內的工作趨勢圖片，並直接在網頁預覽。',
     plotLocation: '圖片儲存位置',
     plotLocationPlaceholder: '例如 ~/Desktop/plot.png',
     browse: '瀏覽',
@@ -305,13 +307,14 @@ const translations = {
     logPreviewNoEntries: '找不到日誌記錄。',
     plotPreviewTitle: '圖表預覽',
     plotPreviewAlt: '工作趨勢圖預覽',
+    saveChart: '儲存圖片',
     submitting: '正在提交...',
     openingPicker: '正在開啟選擇器...',
     pathSelected: '路徑已選擇。',
     pickerCancelled: '已取消選擇。',
     requestFailed: '請求失敗',
     countResult: ({ formatted, seconds }) => `統計完成：${formatted}（${seconds} 秒）`,
-    plotResult: ({ location }) => `圖表已產生：${location || '指定位置'}`,
+    plotResult: '圖表已產生。',
     restResult: '監控已啟動。它會在背景持續執行。',
     monitorAppElapsed: ({ name, formatted }) => `${name} 已經執行 ${formatted}`,
     timeUnits: { hour: '小時', minute: '分鐘', second: '秒' },
@@ -384,7 +387,7 @@ const translations = {
     taskSummaryEmpty: 'タスク記録が見つかりません。',
     taskSummaryLine: ({ task, formatted, seconds }) => `${task}: ${formatted}（${seconds} 秒）`,
     plotTitle: '作業トレンドグラフを作成',
-    plotDescription: 'ログファイルから、指定した日付範囲の作業トレンド画像を作成します。',
+    plotDescription: 'ログファイルから指定した日付範囲の作業トレンド画像を作成し、ページ内でプレビューします。',
     plotLocation: 'グラフの保存先',
     plotLocationPlaceholder: '例: ~/Desktop/plot.png',
     browse: '参照',
@@ -395,13 +398,14 @@ const translations = {
     logPreviewNoEntries: 'ログ記録が見つかりません。',
     plotPreviewTitle: 'グラフプレビュー',
     plotPreviewAlt: '作業トレンドグラフのプレビュー',
+    saveChart: '画像を保存',
     submitting: '送信中...',
     openingPicker: '選択画面を開いています...',
     pathSelected: 'パスを選択しました。',
     pickerCancelled: '選択をキャンセルしました。',
     requestFailed: 'リクエストに失敗しました',
     countResult: ({ formatted, seconds }) => `完了: ${formatted}（${seconds} 秒）`,
-    plotResult: ({ location }) => `グラフを作成しました: ${location || '指定した場所'}`,
+    plotResult: 'グラフを作成しました。',
     restResult: '監視を開始しました。バックグラウンドで実行されます。',
     monitorAppElapsed: ({ name, formatted }) => `${name} は ${formatted} 実行中です`,
     timeUnits: { hour: '時間', minute: '分', second: '秒' },
@@ -474,7 +478,7 @@ const translations = {
     taskSummaryEmpty: 'Aucune session de tâche trouvée.',
     taskSummaryLine: ({ task, formatted, seconds }) => `${task} : ${formatted} (${seconds} secondes)`,
     plotTitle: 'Créer le graphique de tendance',
-    plotDescription: 'Crée une image de tendance du temps de travail pour la période choisie à partir du journal.',
+    plotDescription: 'Crée et prévisualise une image de tendance du temps de travail pour la période choisie à partir du journal.',
     plotLocation: 'Emplacement du graphique',
     plotLocationPlaceholder: 'Exemple : ~/Desktop/plot.png',
     browse: 'Parcourir',
@@ -485,13 +489,14 @@ const translations = {
     logPreviewNoEntries: 'Aucune entrée trouvée.',
     plotPreviewTitle: 'Aperçu du graphique',
     plotPreviewAlt: 'Aperçu du graphique de tendance',
+    saveChart: 'Enregistrer',
     submitting: 'Envoi...',
     openingPicker: 'Ouverture du sélecteur...',
     pathSelected: 'Chemin sélectionné.',
     pickerCancelled: 'Sélection annulée.',
     requestFailed: 'La requête a échoué',
     countResult: ({ formatted, seconds }) => `Terminé : ${formatted} (${seconds} secondes)`,
-    plotResult: ({ location }) => `Graphique créé : ${location || 'emplacement choisi'}`,
+    plotResult: 'Graphique créé.',
     restResult: 'Le suivi a démarré. Il continue en arrière-plan.',
     monitorAppElapsed: ({ name, formatted }) => `${name} est en cours depuis ${formatted}`,
     timeUnits: { hour: 'h', minute: 'min', second: 's' },
@@ -649,7 +654,6 @@ function saveConfig() {
     },
     plot: {
       logPath: document.querySelector('#plot-panel input[name="log_path"]')?.value || '',
-      plotLocation: document.querySelector('#plot-panel input[name="plot_location"]')?.value || '',
     },
   };
 
@@ -665,7 +669,6 @@ function restoreConfig() {
   const countLogs = document.querySelectorAll('#count-panel input[name="log_path"]');
   const countTasks = document.querySelectorAll('#count-panel input[name="task"]');
   const plotLog = document.querySelector('#plot-panel input[name="log_path"]');
-  const plotLocation = document.querySelector('#plot-panel input[name="plot_location"]');
 
   if (restLog && config.rest?.logPath) restLog.value = config.rest.logPath;
   if (restTime && config.rest?.time) restTime.value = config.rest.time;
@@ -681,7 +684,6 @@ function restoreConfig() {
     if (config.count?.task) input.value = config.count.task;
   });
   if (plotLog && config.plot?.logPath) plotLog.value = config.plot.logPath;
-  if (plotLocation && config.plot?.plotLocation) plotLocation.value = config.plot.plotLocation;
   configReady = true;
 }
 
@@ -706,7 +708,7 @@ const resultMessage = (kind, payload) => {
   }
 
   if (kind === 'plot') {
-    return t('plotResult')({ location: payload.plot_location });
+    return t('plotResult');
   }
 
   if (kind === 'plugin-generate') {
@@ -1144,9 +1146,13 @@ async function refreshLogPreview() {
 function showPlotPreview(dataUrl) {
   const preview = document.querySelector('[data-plot-preview]');
   const image = document.querySelector('[data-plot-preview-image]');
+  const download = document.querySelector('[data-plot-download]');
   if (!preview || !image) return;
 
   image.src = dataUrl;
+  if (download) {
+    download.href = dataUrl;
+  }
   preview.hidden = false;
 }
 

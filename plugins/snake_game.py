@@ -1,8 +1,7 @@
 """
 Uncomment the code below for enabling plugin
 """
-
-_SHOULD_IGNORE = 1
+_SHOULD_IGNORE = 0
 _RUN_IN_SUBPROCESS = 1
 
 import tkinter as tk

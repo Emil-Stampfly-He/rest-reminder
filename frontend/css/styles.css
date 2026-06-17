@@ -437,6 +437,14 @@ input:focus {
     opacity: 0.6;
 }
 
+.secondary-action[href] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    text-decoration: none;
+}
+
 .status {
     min-height: 24px;
     color: var(--muted);

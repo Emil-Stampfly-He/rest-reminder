@@ -234,13 +234,6 @@
                         <button class="path-picker" type="button" data-picker="file" data-i18n="browse">Browse</button>
                     </div>
                 </label>
-                <label class="full-width">
-                    <span data-i18n="plotLocation">Chart save location</span>
-                    <div class="path-control">
-                        <input name="plot_location" type="text" placeholder="Example: ~/Desktop/plot.png" data-i18n-placeholder="plotLocationPlaceholder" required>
-                        <button class="path-picker" type="button" data-picker="save-file" data-i18n="browse">Browse</button>
-                    </div>
-                </label>
                 <label>
                     <span data-i18n="startDate">Start date</span>
                     <input name="start_date" type="date" required>
@@ -257,6 +250,7 @@
             <div class="preview-panel plot-preview" data-plot-preview hidden>
                 <div class="preview-header">
                     <h3 data-i18n="plotPreviewTitle">Chart preview</h3>
+                    <a class="secondary-action" data-plot-download download="work-trend.png" data-i18n="saveChart">Save chart</a>
                 </div>
                 <img data-plot-preview-image alt="Work trend chart preview" data-i18n-alt="plotPreviewAlt">
             </div>
