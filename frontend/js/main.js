@@ -1471,7 +1471,7 @@ function initMonitorControls() {
   document.querySelector('[data-resume-monitor]')?.addEventListener('click', () => setMonitoringPaused(false));
   document.querySelector('[data-stop-monitor]')?.addEventListener('click', stopMonitoring);
   refreshMonitorStatus();
-  window.setInterval(refreshMonitorStatus, 5000);
+  window.setInterval(refreshMonitorStatus, 1000);
 }
 
 function initPreviews() {
