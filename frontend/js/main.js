@@ -717,7 +717,7 @@ async function submitForm(form) {
   const kind = form.dataset.kind;
 
   setStatus(form, t('submitting'));
-  button.disabled = true;
+  if (button) button.disabled = true;
 
   try {
     const response = await fetch(endpoint, {
@@ -755,7 +755,53 @@ async function submitForm(form) {
   } catch (error) {
     setStatus(form, error.message || t('requestFailed'), 'error');
   } finally {
-    button.disabled = kind === 'rest' ? monitorState.running : false;
+    if (button) button.disabled = false;
+  }
+}
+
+async function updateMonitoringApps() {
+  const form = document.querySelector('#rest-panel form');
+  if (!form) return;
+
+  if (!processState.selected.length) {
+    if (monitorState.running) {
+      await stopMonitoring();
+    } else {
+      renderMonitorStatus({ running: false, app_list: [], app_statuses: [] });
+    }
+    saveConfig();
+    return;
+  }
+
+  if (!form.reportValidity()) {
+    return;
+  }
+
+  setStatus(form, t('submitting'));
+
+  try {
+    const response = await fetch('/rest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(readForm(form)),
+    });
+    const text = await response.text();
+    let payload = {};
+    try {
+      payload = text ? JSON.parse(text) : {};
+    } catch {
+      payload = { message: text };
+    }
+
+    if (!response.ok) {
+      throw new Error(payload.error || payload.message || `${t('requestFailed')}: ${response.status}`);
+    }
+
+    saveConfig();
+    await refreshMonitorStatus();
+    setStatus(form, resultMessage('rest', payload), 'success');
+  } catch (error) {
+    setStatus(form, error.message || t('requestFailed'), 'error');
   }
 }
 
@@ -776,7 +822,6 @@ function renderMonitorStatus(status) {
   const paused = document.querySelector('[data-monitor-paused]');
   const apps = document.querySelector('[data-monitor-apps]');
   const task = document.querySelector('[data-monitor-task]');
-  const startButton = document.querySelector('#rest-panel form button[type="submit"]');
   const stopButton = document.querySelector('[data-stop-monitor]');
   const pauseButton = document.querySelector('[data-pause-monitor]');
   const resumeButton = document.querySelector('[data-resume-monitor]');
@@ -794,7 +839,30 @@ function renderMonitorStatus(status) {
     elapsed.textContent = status.elapsed_seconds ? formatSeconds(status.elapsed_seconds) : '0s';
   }
   if (apps) {
-    apps.textContent = status.app_list?.length ? status.app_list.join(', ') : t('noneValue');
+    const appStatuses = Array.isArray(status.app_statuses) ? status.app_statuses : [];
+    apps.innerHTML = '';
+    if (appStatuses.length) {
+      const list = document.createElement('div');
+      list.className = 'monitor-app-list';
+      appStatuses.forEach((app) => {
+        const item = document.createElement('div');
+        item.className = 'monitor-app-item';
+
+        const name = document.createElement('strong');
+        name.textContent = app.name;
+
+        const elapsed = document.createElement('span');
+        elapsed.textContent = formatSeconds(app.elapsed_seconds);
+
+        item.append(name, elapsed);
+        list.appendChild(item);
+      });
+      apps.appendChild(list);
+    } else if (statusApps.length) {
+      apps.textContent = statusApps.join(', ');
+    } else {
+      apps.textContent = t('noneValue');
+    }
   }
   if (task) {
     task.textContent = status.task || t('noneValue');
@@ -802,10 +870,6 @@ function renderMonitorStatus(status) {
   if (status.running && !sameProcessList(processState.selected, statusApps)) {
     processState.selected = [...statusApps];
     renderSelectedProcesses();
-  }
-  updateProcessPickerDisabled();
-  if (startButton) {
-    startButton.disabled = status.running;
   }
   if (stopButton) {
     stopButton.disabled = !status.running;
@@ -883,26 +947,6 @@ function sameProcessList(left, right) {
   return left.every((item, index) => item === right[index]);
 }
 
-function updateProcessPickerDisabled() {
-  const input = document.querySelector('.process-search');
-  const refreshButton = document.querySelector('[data-refresh-processes]');
-  const suggestionContainer = document.querySelector('[data-process-suggestions]');
-
-  if (input) {
-    input.disabled = monitorState.running;
-  }
-  if (refreshButton) {
-    refreshButton.disabled = monitorState.running;
-  }
-  if (suggestionContainer && monitorState.running) {
-    processState.dropdownOpen = false;
-    suggestionContainer.classList.remove('is-open');
-  }
-  document.querySelectorAll('[data-remove-process]').forEach((button) => {
-    button.disabled = monitorState.running;
-  });
-}
-
 function renderSelectedProcesses() {
   const container = document.querySelector('[data-selected-processes]');
   if (!container) return;
@@ -931,12 +975,11 @@ function renderSelectedProcesses() {
     remove.dataset.removeProcess = 'true';
     remove.setAttribute('aria-label', `${t('removeApp')} ${name}`);
     remove.textContent = '×';
-    remove.disabled = monitorState.running;
     remove.addEventListener('click', () => {
-      if (monitorState.running) return;
       processState.selected = processState.selected.filter((item) => item !== name);
       renderSelectedProcesses();
       renderProcessSuggestions();
+      updateMonitoringApps();
     });
 
     chip.append(text, remove);
@@ -960,14 +1003,17 @@ function processRank(name, query) {
 }
 
 function addProcess(name) {
-  if (monitorState.running) return;
   const normalized = name.trim();
   if (!normalized) return;
   if (!processState.selected.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
     processState.selected.push(normalized);
+    renderSelectedProcesses();
+    renderProcessSuggestions('');
+    updateMonitoringApps();
+  } else {
+    renderSelectedProcesses();
+    renderProcessSuggestions('');
   }
-  renderSelectedProcesses();
-  renderProcessSuggestions('');
   const input = document.querySelector('.process-search');
   if (input) input.value = '';
 }
@@ -977,11 +1023,6 @@ function renderProcessSuggestions(query = document.querySelector('.process-searc
   if (!container) return;
 
   container.innerHTML = '';
-  if (monitorState.running) {
-    processState.dropdownOpen = false;
-    container.classList.remove('is-open');
-    return;
-  }
   container.classList.toggle('is-open', processState.dropdownOpen);
   const normalizedQuery = query.trim().toLowerCase();
   const selected = new Set(processState.selected.map((item) => item.toLowerCase()));

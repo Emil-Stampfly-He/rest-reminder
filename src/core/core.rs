@@ -1,24 +1,24 @@
-use std::collections::{HashMap};
+use crate::plugin::plugin::{PluginContext, PluginManager};
+use crate::statistic::log_entry::LogEntry;
+use chrono::{DateTime, Local};
+use colored::*;
+use rand::Rng;
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::time::Instant;
-use chrono::{DateTime, Local};
-use rand::Rng;
 use sysinfo::{ProcessesToUpdate, System};
 use tokio::sync::watch;
 use tokio::time::{Duration, interval};
-use colored::*;
-use crate::plugin::plugin::{PluginContext, PluginManager};
-use crate::statistic::log_entry::LogEntry;
 
 // Windows-specific imports
 #[cfg(windows)]
 use {
-    windows::core::PCWSTR,
-    windows::Win32::Foundation::HWND,
-    windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK},
     widestring::U16CString,
+    windows::Win32::Foundation::HWND,
+    windows::Win32::UI::WindowsAndMessaging::{MB_OK, MessageBoxW},
+    windows::core::PCWSTR,
 };
 
 #[derive(Debug)]
@@ -41,20 +41,32 @@ pub async fn run_rest_reminder(
     let mut msg_undiscovered_display_interval = interval(Duration::from_secs(2));
 
     let mut plugin_manager = PluginManager::new().unwrap_or_else(|e| {
-        println!("{} {}", "Failed to initialize plugin manager:".bright_red().bold(), e.to_string().red());
+        println!(
+            "{} {}",
+            "Failed to initialize plugin manager:".bright_red().bold(),
+            e.to_string().red()
+        );
         PluginManager::new().unwrap()
     });
 
     if let Err(e) = plugin_manager.load_plugins("plugins") {
-        println!("{} {}", "Failed to load plugins:".bright_red().bold(), e.to_string().red());
+        println!(
+            "{} {}",
+            "Failed to load plugins:".bright_red().bold(),
+            e.to_string().red()
+        );
     }
-    
+
     // Trigger init hook
     let init_context = PluginContext::new("Rest Reminder initialized", 0);
     if let Err(e) = plugin_manager.trigger_hook("on_init", &init_context) {
-        println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
+        println!(
+            "{} {}",
+            "Plugin hook error:".bright_red(),
+            e.to_string().red()
+        );
     }
-    
+
     // Trace current state
     let mut last_found_state = false;
 
@@ -68,7 +80,7 @@ pub async fn run_rest_reminder(
                 }
                 return;
             }
-            
+
             // Regular process checking
             _ = process_check_interval.tick() => {
                 if is_paused(&pause_rx) {
@@ -82,25 +94,25 @@ pub async fn run_rest_reminder(
                         app.iter()
                             .any(|software|
                                 process.name().to_string_lossy().contains(software)));
-                
+
                 // Reset intervals when state changes
                 if found != last_found_state {
                     if !found { msg_undiscovered_display_interval = interval(Duration::from_secs(2)); }
                     last_found_state = found;
                 }
-                
+
                 if found {
                     let start = Local::now();
                     println!("{}", "Process(es) detected, you are about to start working...".bright_green().bold());
-                    
+
                     // Trigger work start hook
                     let work_start_context = PluginContext::new("Work session started", 0);
                     if let Err(e) = plugin_manager.trigger_hook("on_work_start", &work_start_context) {
                         println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
                     }
-                    
+
                     let start_time = Instant::now();
-                    
+
                     // Monitor working session
                     let work_session_result = monitor_work_session(&mut sys, &app, time, start_time, &mut pause_rx).await;
                     match work_session_result {
@@ -111,13 +123,13 @@ pub async fn run_rest_reminder(
                         }
                         WorkSessionResult::TimeReached => {
                             println!("{}", "Process(es) still running, you need a break!".bright_red().bold());
-                            
+
                             // Trigger break hook
                             let break_context = PluginContext::new("Time to take a break!", time);
                             if let Err(e) = plugin_manager.trigger_hook("on_break_reminder", &break_context) {
                                 println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
                             }
-                            
+
                             pop_up(time).await;
                             log(start, Local::now(), &mut log_location, &app, task.as_deref());
                         }
@@ -143,22 +155,154 @@ pub async fn run_rest_reminder(
     }
 }
 
+pub async fn run_rest_reminder_dynamic(
+    mut log_location: PathBuf,
+    time: u64,
+    initial_apps: Vec<String>,
+    task: Option<String>,
+    mut pause_rx: Option<watch::Receiver<bool>>,
+    mut app_rx: watch::Receiver<Vec<String>>,
+) {
+    let mut sys = System::new_all();
+    let mut process_check_interval = interval(Duration::from_secs(1));
+    let mut msg_undiscovered_display_interval = interval(Duration::from_secs(2));
+
+    let mut plugin_manager = PluginManager::new().unwrap_or_else(|e| {
+        println!(
+            "{} {}",
+            "Failed to initialize plugin manager:".bright_red().bold(),
+            e.to_string().red()
+        );
+        PluginManager::new().unwrap()
+    });
+
+    if let Err(e) = plugin_manager.load_plugins("plugins") {
+        println!(
+            "{} {}",
+            "Failed to load plugins:".bright_red().bold(),
+            e.to_string().red()
+        );
+    }
+
+    let init_context = PluginContext::new("Rest Reminder initialized", 0);
+    if let Err(e) = plugin_manager.trigger_hook("on_init", &init_context) {
+        println!(
+            "{} {}",
+            "Plugin hook error:".bright_red(),
+            e.to_string().red()
+        );
+    }
+
+    let mut current_apps = initial_apps;
+    let mut last_found_state = false;
+
+    loop {
+        tokio::select! {
+            press_ctrl_c_result = tokio::signal::ctrl_c() => {
+                match press_ctrl_c_result {
+                    Ok(_) => println!("{}", "Stopped monitoring".bright_yellow().bold()),
+                    Err(_) => panic!("Failed to start work session")
+                }
+                return;
+            }
+
+            changed = app_rx.changed() => {
+                if changed.is_err() {
+                    return;
+                }
+                current_apps = app_rx.borrow().clone();
+                if current_apps.is_empty() {
+                    last_found_state = false;
+                }
+            }
+
+            _ = process_check_interval.tick() => {
+                if is_paused(&pause_rx) || current_apps.is_empty() {
+                    continue;
+                }
+
+                sys.refresh_processes(ProcessesToUpdate::All, true);
+                let found = any_monitored_process_running(&sys, &current_apps);
+
+                if found != last_found_state {
+                    if !found { msg_undiscovered_display_interval = interval(Duration::from_secs(2)); }
+                    last_found_state = found;
+                }
+
+                if found {
+                    let start = Local::now();
+                    println!("{}", "Process(es) detected, you are about to start working...".bright_green().bold());
+
+                    let work_start_context = PluginContext::new("Work session started", 0);
+                    if let Err(e) = plugin_manager.trigger_hook("on_work_start", &work_start_context) {
+                        println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
+                    }
+
+                    let start_time = Instant::now();
+                    let work_session_result = monitor_work_session_dynamic(
+                        &mut sys,
+                        &mut current_apps,
+                        time,
+                        start_time,
+                        &mut pause_rx,
+                        &mut app_rx,
+                    ).await;
+
+                    match work_session_result {
+                        WorkSessionResult::CtrlCPressed => {
+                            log(start, Local::now(), &mut log_location, &current_apps, task.as_deref());
+                            println!("{}", "Stopped monitoring".bright_yellow().bold());
+                            return;
+                        }
+                        WorkSessionResult::TimeReached => {
+                            println!("{}", "Process(es) still running, you need a break!".bright_red().bold());
+
+                            let break_context = PluginContext::new("Time to take a break!", time);
+                            if let Err(e) = plugin_manager.trigger_hook("on_break_reminder", &break_context) {
+                                println!("{} {}", "Plugin hook error:".bright_red(), e.to_string().red());
+                            }
+
+                            pop_up(time).await;
+                            log(start, Local::now(), &mut log_location, &current_apps, task.as_deref());
+                        }
+                        WorkSessionResult::ProcessEnded => {
+                            log(start, Local::now(), &mut log_location, &current_apps, task.as_deref());
+                            println!("{}", "Process(es) ended, you finally decide to rest...".bright_blue().bold());
+                            last_found_state = false;
+                        }
+                        WorkSessionResult::Paused => {
+                            log(start, Local::now(), &mut log_location, &current_apps, task.as_deref());
+                            println!("{}", "Monitoring paused".bright_yellow().bold());
+                            wait_until_resumed(&mut pause_rx).await;
+                            last_found_state = false;
+                        }
+                    }
+                }
+            }
+
+            _ = msg_undiscovered_display_interval.tick(), if !last_found_state => {
+                println!("{}", "No processes detected, you are resting...".cyan());
+            }
+        }
+    }
+}
+
 async fn monitor_work_session(
-    sys: &mut System, 
-    app: &[String], 
-    time: u64, 
+    sys: &mut System,
+    app: &[String],
+    time: u64,
     start_time: Instant,
     pause_rx: &mut Option<watch::Receiver<bool>>,
 ) -> WorkSessionResult {
     let mut heartbeat = interval(Duration::from_secs(2));
-    
+
     loop {
         tokio::select! {
             // Handle Ctrl+C during work session
             _ = tokio::signal::ctrl_c() => {
                 return WorkSessionResult::CtrlCPressed;
             }
-            
+
             // Regular heartbeat check
             _ = heartbeat.tick() => {
                 if is_paused(pause_rx) {
@@ -172,7 +316,7 @@ async fn monitor_work_session(
                         app.iter()
                             .any(|software|
                                 process.name().to_string_lossy().contains(software)));
-                
+
                 if !still_running {
                     return WorkSessionResult::ProcessEnded;
                 }
@@ -184,6 +328,58 @@ async fn monitor_work_session(
             }
         }
     }
+}
+
+async fn monitor_work_session_dynamic(
+    sys: &mut System,
+    app: &mut Vec<String>,
+    time: u64,
+    start_time: Instant,
+    pause_rx: &mut Option<watch::Receiver<bool>>,
+    app_rx: &mut watch::Receiver<Vec<String>>,
+) -> WorkSessionResult {
+    let mut heartbeat = interval(Duration::from_secs(2));
+
+    loop {
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                return WorkSessionResult::CtrlCPressed;
+            }
+
+            changed = app_rx.changed() => {
+                if changed.is_err() {
+                    return WorkSessionResult::ProcessEnded;
+                }
+                *app = app_rx.borrow().clone();
+                if app.is_empty() {
+                    return WorkSessionResult::ProcessEnded;
+                }
+            }
+
+            _ = heartbeat.tick() => {
+                if is_paused(pause_rx) {
+                    return WorkSessionResult::Paused;
+                }
+
+                sys.refresh_processes(ProcessesToUpdate::All, true);
+                if !any_monitored_process_running(sys, app) {
+                    return WorkSessionResult::ProcessEnded;
+                }
+
+                let elapsed = start_time.elapsed();
+                if elapsed.as_secs() >= time {
+                    return WorkSessionResult::TimeReached;
+                }
+            }
+        }
+    }
+}
+
+fn any_monitored_process_running(sys: &System, app: &[String]) -> bool {
+    sys.processes().values().any(|process| {
+        app.iter()
+            .any(|software| process.name().to_string_lossy().contains(software))
+    })
 }
 
 fn is_paused(pause_rx: &Option<watch::Receiver<bool>>) -> bool {
@@ -204,18 +400,48 @@ async fn wait_until_resumed(pause_rx: &mut Option<watch::Receiver<bool>>) {
 
 async fn pop_up(time: u64) {
     let slogans = HashMap::from([
-        (0, format!("{time} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!")),
-        (1, format!("{time} seconds OF UNSTOPPABLE GRIND! YOUR LEGS ARE CRYING FOR A BREAK! STAND UP AND SHAKE IT OFF!!!")),
-        (2, format!("{time} seconds STRAIGHT LIKE A NINJA! YOUR BACK IS REBELLING! POWER UP WITH A QUICK STAND-UP BREAK!!!")),
-        (3, format!("{time} seconds WITHOUT PAUSE! ALERT: MUSCLES ON STRIKE! RISE AND RELEASE WITH A STRETCH!!!")),
-        (4, format!("{time} seconds NONSTOP MODE ENGAGED! WARNING: BRAIN FOG IMMINENT! HIT THE PAUSE AND STAND TALL!!!")),
-        (5, format!("{time} seconds AND COUNTING! MISSION: TAKE A BREAK! DEPLOY YOUR LEGS FOR A STAND-UP MISSION!!!")),
+        (
+            0,
+            format!(
+                "{time} seconds NON-STOOOOOOOOOOOOP! YOU MUST BE TIRED! STAND UP AND TAKE A BREAK!!!!!!!"
+            ),
+        ),
+        (
+            1,
+            format!(
+                "{time} seconds OF UNSTOPPABLE GRIND! YOUR LEGS ARE CRYING FOR A BREAK! STAND UP AND SHAKE IT OFF!!!"
+            ),
+        ),
+        (
+            2,
+            format!(
+                "{time} seconds STRAIGHT LIKE A NINJA! YOUR BACK IS REBELLING! POWER UP WITH A QUICK STAND-UP BREAK!!!"
+            ),
+        ),
+        (
+            3,
+            format!(
+                "{time} seconds WITHOUT PAUSE! ALERT: MUSCLES ON STRIKE! RISE AND RELEASE WITH A STRETCH!!!"
+            ),
+        ),
+        (
+            4,
+            format!(
+                "{time} seconds NONSTOP MODE ENGAGED! WARNING: BRAIN FOG IMMINENT! HIT THE PAUSE AND STAND TALL!!!"
+            ),
+        ),
+        (
+            5,
+            format!(
+                "{time} seconds AND COUNTING! MISSION: TAKE A BREAK! DEPLOY YOUR LEGS FOR A STAND-UP MISSION!!!"
+            ),
+        ),
     ]);
 
     let rng = rand::rng().random_range(0..slogans.len());
     let message_string = match slogans.get(&rng) {
         Some(slogan) => slogan.to_string(),
-        None => panic!("Index out of bounds!")
+        None => panic!("Index out of bounds!"),
     };
 
     #[cfg(windows)]
@@ -226,7 +452,13 @@ async fn pop_up(time: u64) {
 
     #[cfg(not(any(windows, target_os = "macos")))]
     {
-        println!("{}", format!("ALERT: {}", message_string).bright_red().bold().on_yellow());
+        println!(
+            "{}",
+            format!("ALERT: {}", message_string)
+                .bright_red()
+                .bold()
+                .on_yellow()
+        );
         println!("{}", format!("Rest reminder: You have been working continuously for {} seconds, it's time to take a break!", time).bright_magenta().bold());
     }
 }
@@ -235,18 +467,18 @@ async fn pop_up(time: u64) {
 async fn show_popup_windows(message: &str) {
     let title = U16CString::from_str("REST REMINDEEEEEEEEEEEEEEEEER").unwrap();
     let message = U16CString::from_str(message).unwrap();
-    
+
     // Windows API is synchronous, so run it in a background thread
-    tokio::task::spawn_blocking(move || {
-        unsafe {
-            MessageBoxW(
-                HWND(0),
-                PCWSTR(message.as_ptr()),
-                PCWSTR(title.as_ptr()),
-                MB_OK,
-            );
-        }
-    }).await.expect("Failed to show popup");
+    tokio::task::spawn_blocking(move || unsafe {
+        MessageBoxW(
+            HWND(0),
+            PCWSTR(message.as_ptr()),
+            PCWSTR(title.as_ptr()),
+            MB_OK,
+        );
+    })
+    .await
+    .expect("Failed to show popup");
 }
 
 #[cfg(target_os = "macos")]
@@ -255,7 +487,7 @@ async fn show_popup_macos(message: &str) {
         r#"display dialog "{}" with title "REST REMINDEEEEEEEEEEEEEEEEER" buttons {{"OK"}} default button "OK""#,
         message.replace("\"", "\\\"")
     );
-    
+
     let _ = tokio::process::Command::new("osascript")
         .arg("-e")
         .arg(&script)
@@ -271,7 +503,11 @@ fn log(
     task: Option<&str>,
 ) {
     let mut path = log_location.to_path_buf();
-    if path.is_dir() || log_location.to_string_lossy().ends_with(std::path::MAIN_SEPARATOR) {
+    if path.is_dir()
+        || log_location
+            .to_string_lossy()
+            .ends_with(std::path::MAIN_SEPARATOR)
+    {
         path.push("focus_log.txt");
     }
 
@@ -286,7 +522,6 @@ fn log(
         )
     });
 
-
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
@@ -294,5 +529,9 @@ fn log(
         .expect("Cannot open log file!");
 
     writeln!(file, "{log_line}").expect("Cannot write log file!");
-    println!("{} {}", "Logging to".bright_green().bold(), path.to_string_lossy());
+    println!(
+        "{} {}",
+        "Logging to".bright_green().bold(),
+        path.to_string_lossy()
+    );
 }

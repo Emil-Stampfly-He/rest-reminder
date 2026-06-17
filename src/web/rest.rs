@@ -1,7 +1,8 @@
-use crate::core::core::run_rest_reminder;
+use crate::core::core::run_rest_reminder_dynamic;
 use actix_web::{HttpResponse, Responder, get, post, web};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{LazyLock, Mutex};
 use tokio::sync::watch;
@@ -25,6 +26,8 @@ struct MonitorSession {
     app_list: Vec<String>,
     task: Option<String>,
     pause_tx: watch::Sender<bool>,
+    app_tx: watch::Sender<Vec<String>>,
+    app_started_at: HashMap<String, DateTime<Local>>,
 }
 
 #[derive(Serialize)]
@@ -40,8 +43,15 @@ struct MonitorStatusResponse {
     log_path: Option<String>,
     time: Option<u64>,
     app_list: Vec<String>,
+    app_statuses: Vec<MonitorAppStatus>,
     task: Option<String>,
     paused: bool,
+}
+
+#[derive(Serialize)]
+struct MonitorAppStatus {
+    name: String,
+    elapsed_seconds: i64,
 }
 
 #[derive(Serialize)]
@@ -51,16 +61,31 @@ struct ErrorResponse {
 
 fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusResponse {
     match session {
-        Some(session) => MonitorStatusResponse {
-            running: true,
-            started_at: Some(session.started_at.to_rfc3339()),
-            elapsed_seconds: Some((Local::now() - session.started_at).num_seconds()),
-            log_path: Some(session.log_path.clone()),
-            time: Some(session.time),
-            app_list: session.app_list.clone(),
-            task: session.task.clone(),
-            paused: *session.pause_tx.borrow(),
-        },
+        Some(session) => {
+            let now = Local::now();
+            MonitorStatusResponse {
+                running: true,
+                started_at: Some(session.started_at.to_rfc3339()),
+                elapsed_seconds: Some((now - session.started_at).num_seconds()),
+                log_path: Some(session.log_path.clone()),
+                time: Some(session.time),
+                app_list: session.app_list.clone(),
+                app_statuses: session
+                    .app_list
+                    .iter()
+                    .map(|name| MonitorAppStatus {
+                        name: name.clone(),
+                        elapsed_seconds: session
+                            .app_started_at
+                            .get(name)
+                            .map(|started_at| (now - *started_at).num_seconds())
+                            .unwrap_or(0),
+                    })
+                    .collect(),
+                task: session.task.clone(),
+                paused: *session.pause_tx.borrow(),
+            }
+        }
         None => MonitorStatusResponse {
             running: false,
             started_at: None,
@@ -68,6 +93,7 @@ fn monitor_status_from(session: Option<&MonitorSession>) -> MonitorStatusRespons
             log_path: None,
             time: None,
             app_list: Vec::new(),
+            app_statuses: Vec::new(),
             task: None,
             paused: false,
         },
@@ -88,7 +114,7 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
     let log_path = PathBuf::from(&rest_request.log_path.as_str());
     let log_path_string = rest_request.log_path.clone();
     let time = rest_request.time;
-    let app_list = rest_request.app_list.clone();
+    let app_list = normalized_apps(&rest_request.app_list);
     let app_list_for_task = app_list.clone();
     let task = rest_request
         .task
@@ -107,16 +133,41 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
     };
 
     clear_finished_session(&mut current_session);
-    if current_session.is_some() {
-        return HttpResponse::Conflict().json(ErrorResponse {
-            error: "Monitoring is already running".to_string(),
+    if let Some(session) = current_session.as_mut() {
+        session.log_path = log_path_string;
+        session.time = time;
+        session.task = task;
+        session.app_list = app_list.clone();
+        update_app_started_at(&mut session.app_started_at, &app_list);
+
+        if session.app_tx.send(app_list).is_err() {
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: "Failed to update monitored apps".to_string(),
+            });
+        }
+
+        return HttpResponse::Ok().json(RestResponse {
+            status: "updated".to_string(),
         });
     }
 
     let (pause_tx, pause_rx) = watch::channel(false);
+    let (app_tx, app_rx) = watch::channel(app_list.clone());
+    let app_started_at = app_list
+        .iter()
+        .map(|app| (app.clone(), Local::now()))
+        .collect();
 
     let handle = actix_web::rt::spawn(async move {
-        run_rest_reminder(log_path, time, app_list_for_task, task_for_task, Some(pause_rx)).await;
+        run_rest_reminder_dynamic(
+            log_path,
+            time,
+            app_list_for_task,
+            task_for_task,
+            Some(pause_rx),
+            app_rx,
+        )
+        .await;
     });
 
     *current_session = Some(MonitorSession {
@@ -127,11 +178,38 @@ async fn rest(rest_request: web::Json<RestRequest>) -> impl Responder {
         app_list,
         task,
         pause_tx,
+        app_tx,
+        app_started_at,
     });
 
     HttpResponse::Ok().json(RestResponse {
         status: "started".to_string(),
     })
+}
+
+fn normalized_apps(apps: &[String]) -> Vec<String> {
+    apps.iter().fold(Vec::new(), |mut normalized, app| {
+        let app = app.trim();
+        if !app.is_empty()
+            && !normalized
+                .iter()
+                .any(|item: &String| item.eq_ignore_ascii_case(app))
+        {
+            normalized.push(app.to_string());
+        }
+        normalized
+    })
+}
+
+fn update_app_started_at(
+    app_started_at: &mut HashMap<String, DateTime<Local>>,
+    app_list: &[String],
+) {
+    let now = Local::now();
+    app_started_at.retain(|name, _| app_list.iter().any(|app| app == name));
+    for app in app_list {
+        app_started_at.entry(app.clone()).or_insert(now);
+    }
 }
 
 #[post("/rest/stop")]
@@ -260,7 +338,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn starting_monitor_sets_status_and_rejects_duplicate_start() {
+    async fn starting_monitor_sets_status_and_updates_running_apps() {
         let _guard = TEST_LOCK.lock().await;
         reset_monitor_session();
 
@@ -316,12 +394,27 @@ mod tests {
         let resumed_status_body = body_to_string(test::read_body(resumed_status_response).await);
         assert!(resumed_status_body.contains(r#""paused":false"#));
 
-        let duplicate_req = test::TestRequest::post()
+        let update_request = RestRequest {
+            app_list: vec![
+                "rest-reminder-test-process-that-should-not-exist".to_string(),
+                "rest-reminder-second-test-process".to_string(),
+            ],
+            ..request.clone()
+        };
+        let update_req = test::TestRequest::post()
             .uri("/rest")
-            .set_json(&request)
+            .set_json(&update_request)
             .to_request();
-        let duplicate_response = test::call_service(&app, duplicate_req).await;
-        assert_eq!(duplicate_response.status(), StatusCode::CONFLICT);
+        let update_response = test::call_service(&app, update_req).await;
+        assert_eq!(update_response.status(), StatusCode::OK);
+        let update_body = body_to_string(test::read_body(update_response).await);
+        assert!(update_body.contains(r#""status":"updated"#));
+
+        let updated_status_req = test::TestRequest::get().uri("/rest/status").to_request();
+        let updated_status_response = test::call_service(&app, updated_status_req).await;
+        let updated_status_body = body_to_string(test::read_body(updated_status_response).await);
+        assert!(updated_status_body.contains(r#""running":true"#));
+        assert!(updated_status_body.contains("rest-reminder-second-test-process"));
 
         let stop_req = test::TestRequest::post().uri("/rest/stop").to_request();
         let stop_response = test::call_service(&app, stop_req).await;

@@ -8,7 +8,7 @@ fn main() -> io::Result<()> {
     {
         println!("cargo:rerun-if-changed=assets/icon.ico");
         println!("cargo:rerun-if-changed=resources/icon.rc");
-        
+
         WindowsResource::new()
             .set_icon("assets/icon.ico")
             .set_icon_with_id("assets/icon.ico", "app-icon")

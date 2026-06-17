@@ -477,6 +477,33 @@ input:focus {
     margin: 4px 0 0;
 }
 
+.monitor-app-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.monitor-app-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    max-width: 520px;
+    color: var(--text);
+}
+
+.monitor-app-item strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monitor-app-item span {
+    color: var(--muted);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .preview-header {
     display: flex;
     align-items: center;
