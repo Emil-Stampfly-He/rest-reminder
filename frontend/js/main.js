@@ -112,6 +112,7 @@ const translations = {
     countResult: ({ formatted, seconds }) => `Done: ${formatted} (${seconds} seconds)`,
     plotResult: ({ location }) => `Chart generated: ${location || 'selected location'}`,
     restResult: 'Monitoring started. It will keep running in the background.',
+    monitorAppElapsed: ({ name, formatted }) => `${name} has been running for ${formatted}`,
     timeUnits: { hour: 'h', minute: 'm', second: 's' },
   },
   'zh-Hans': {
@@ -222,6 +223,7 @@ const translations = {
     countResult: ({ formatted, seconds }) => `统计完成：${formatted}（${seconds} 秒）`,
     plotResult: ({ location }) => `图表已生成：${location || '指定位置'}`,
     restResult: '监控已启动。它会在后台持续运行。',
+    monitorAppElapsed: ({ name, formatted }) => `${name} 已经运行 ${formatted}`,
     timeUnits: { hour: '小时', minute: '分钟', second: '秒' },
   },
   'zh-Hant': {
@@ -311,6 +313,7 @@ const translations = {
     countResult: ({ formatted, seconds }) => `統計完成：${formatted}（${seconds} 秒）`,
     plotResult: ({ location }) => `圖表已產生：${location || '指定位置'}`,
     restResult: '監控已啟動。它會在背景持續執行。',
+    monitorAppElapsed: ({ name, formatted }) => `${name} 已經執行 ${formatted}`,
     timeUnits: { hour: '小時', minute: '分鐘', second: '秒' },
   },
   ja: {
@@ -400,6 +403,7 @@ const translations = {
     countResult: ({ formatted, seconds }) => `完了: ${formatted}（${seconds} 秒）`,
     plotResult: ({ location }) => `グラフを作成しました: ${location || '指定した場所'}`,
     restResult: '監視を開始しました。バックグラウンドで実行されます。',
+    monitorAppElapsed: ({ name, formatted }) => `${name} は ${formatted} 実行中です`,
     timeUnits: { hour: '時間', minute: '分', second: '秒' },
   },
   fr: {
@@ -489,6 +493,7 @@ const translations = {
     countResult: ({ formatted, seconds }) => `Terminé : ${formatted} (${seconds} secondes)`,
     plotResult: ({ location }) => `Graphique créé : ${location || 'emplacement choisi'}`,
     restResult: 'Le suivi a démarré. Il continue en arrière-plan.',
+    monitorAppElapsed: ({ name, formatted }) => `${name} est en cours depuis ${formatted}`,
     timeUnits: { hour: 'h', minute: 'min', second: 's' },
   },
 };
@@ -847,19 +852,26 @@ function renderMonitorStatus(status) {
       appStatuses.forEach((app) => {
         const item = document.createElement('div');
         item.className = 'monitor-app-item';
-
-        const name = document.createElement('strong');
-        name.textContent = app.name;
-
-        const elapsed = document.createElement('span');
-        elapsed.textContent = formatSeconds(app.elapsed_seconds);
-
-        item.append(name, elapsed);
+        item.textContent = t('monitorAppElapsed')({
+          name: app.name,
+          formatted: formatSeconds(app.elapsed_seconds),
+        });
         list.appendChild(item);
       });
       apps.appendChild(list);
     } else if (statusApps.length) {
-      apps.textContent = statusApps.join(', ');
+      const list = document.createElement('div');
+      list.className = 'monitor-app-list';
+      statusApps.forEach((name) => {
+        const item = document.createElement('div');
+        item.className = 'monitor-app-item';
+        item.textContent = t('monitorAppElapsed')({
+          name,
+          formatted: formatSeconds(0),
+        });
+        list.appendChild(item);
+      });
+      apps.appendChild(list);
     } else {
       apps.textContent = t('noneValue');
     }
